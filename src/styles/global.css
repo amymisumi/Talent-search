@@ -1,0 +1,54 @@
+/* Global styles to ensure buttons and interactive elements are clickable */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure buttons and links are always clickable */
+button, 
+a,
+[role="button"],
+[onclick] {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Remove any pointer-events: none that might be set globally */
+button, a, input, select, textarea, label, [tabindex] {
+  pointer-events: auto !important;
+}
+
+/* Ensure the app container doesn't block events */
+#root {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Fix for any overlay that might be blocking clicks */
+.overlay {
+  pointer-events: none;
+}
+
+.overlay > * {
+  pointer-events: auto;
+}
+
+/* Ensure button states work correctly */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Fix for any absolute/fixed positioned elements that might be blocking */
+[class*="fixed"],
+[class*="absolute"] {
+  pointer-events: none;
+}
+
+[class*="fixed"] > *,
+[class*="absolute"] > * {
+  pointer-events: auto;
+}

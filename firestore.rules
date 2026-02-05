@@ -1,0 +1,257 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/userRoles/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/userRoles/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
+    }
+    
+    // Allow read access to all users for public profiles
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      
+      // Profile data
+      match /profile/{document=**} {
+        allow read: if request.auth != null;
+        allow write: if request.auth.uid == userId;
+      }
+      
+      // Portfolio items
+      match /portfolio/{itemId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth.uid == userId;
+        allow update, delete: if request.auth.uid == userId;
+      }
+      
+      // Skills (users/{userId}/skills/{skillId})
+      match /skills/{skillId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Certifications (users/{userId}/certifications/{certId})
+      match /certifications/{certId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Certificates (legacy)
+      match /certificates/{certificateId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth.uid == userId;
+        allow update, delete: if request.auth.uid == userId;
+      }
+      
+      // Reviews (nested under users)
+      match /reviews/{reviewId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth.uid != userId; // Can't review yourself
+        allow update, delete: if false; // Reviews can't be modified or deleted
+      }
+    }
+    
+    // Top-level reviews collection (for youth reviews from recruiters)
+    match /reviews/{reviewId} {
+      // Youth can read their own reviews, admins can read all
+      allow read: if request.auth != null && (
+        resource.data.youthId == request.auth.uid || 
+        resource.data.profileId == request.auth.uid ||
+        isAdmin()
+      );
+      // Recruiters can create reviews (cannot review themselves)
+      allow create: if request.auth != null && 
+                    request.resource.data.recruiterId == request.auth.uid &&
+                    request.resource.data.youthId != request.auth.uid;
+      // Admins can update/delete, others cannot
+      allow update, delete: if isAdmin();
+    }
+    
+    // Recruiter-specific rules
+    match /recruiters/{recruiterId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == recruiterId;
+      
+      // Job postings
+      match /jobs/{jobId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth.uid == recruiterId;
+        
+        // Applications for jobs
+        match /applications/{applicationId} {
+          allow read: if request.auth.uid == recruiterId || 
+                      (request.auth != null && request.auth.uid == resource.data.userId);
+          allow create: if request.auth != null && 
+                        request.auth.uid != recruiterId && 
+                        request.resource.data.userId == request.auth.uid;
+        }
+      }
+    }
+    
+    // AI Chat Messages - Users can only access their own chat history
+    match /chats/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // User Profile Collection for AI Assistant context
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // User Analytics - Users can only access their own analytics
+    match /user_analytics/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /events/{eventId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /portfolio_stats/{portfolioId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /recruiter_views/{recruiterId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /searched_skills/{skill} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Connections - Users can manage their own connections
+    match /connections/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /connections/{connectionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Connection Requests - Users can manage their own requests
+    match /connection_requests/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /incoming/{requestId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /outgoing/{requestId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Public data
+    match /public/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Admin-only collections
+    
+    match /systemSettings/{settingId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    match /systemAlerts/{alertId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /announcements/{announcementId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    match /reports/{reportId} {
+      allow read, write: if isAdmin();
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Certificates - admins can read/write all
+    match /certificates/{certId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+    
+    // Portfolios - admins can read/write all
+    match /portfolios/{portfolioId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (
+        resource.data.profileId == request.auth.uid || isAdmin()
+      );
+    }
+    
+    // Connections - admins can read/write all
+    match /connections/{connectionId} {
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.connectedUserId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.connectedUserId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+    
+    // Skills - admins can verify
+    match /skills/{skillId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        resource.data.profileId == request.auth.uid || isAdmin()
+      );
+      allow delete: if request.auth != null && (
+        resource.data.profileId == request.auth.uid || isAdmin()
+      );
+    }
+    
+    // User roles - admins can read/write all
+    match /userRoles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Profiles - admins can read/write all
+    match /profiles/{profileId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        request.auth.uid == profileId || isAdmin()
+      );
+    }
+    
+    // Notifications - admins can read/write all
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow write: if request.auth != null && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+  }
+}
