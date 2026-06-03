@@ -1,12 +1,13 @@
 import { Outlet, useLocation, Navigate, useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-import { Loader2, Bell } from "lucide-react";
+import { Loader2, Bell, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { RecruiterSidebar } from "@/components/dashboard/RecruiterSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,7 @@ export function RecruiterLayout() {
   const navigate = useNavigate();
   const { currentUser, userData, loading, signOut } = useAuth();
   useTheme(); // Theme is used for the context, but we don't need the values here
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check if user is authenticated
   // Note: Role checking is handled by ProtectedRoute in App.tsx
@@ -77,7 +79,18 @@ export function RecruiterLayout() {
       
       <div className="flex-1 flex flex-col lg:pl-64">
         {/* Top Navigation */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
+          {/* Mobile Menu Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+
           <div className="flex flex-1 items-center gap-4 justify-end">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="rounded-full" aria-label="View notifications">
@@ -123,7 +136,7 @@ export function RecruiterLayout() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" role="main">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6" role="main">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>

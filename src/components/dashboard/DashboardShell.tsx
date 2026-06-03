@@ -188,24 +188,26 @@ export const DashboardShell = ({
   }, [currentUser?.displayName, userData?.displayName]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="relative flex min-h-screen">
+        {/* Mobile Sidebar Toggle */}
         <button
-          className="fixed left-4 top-4 z-50 rounded-full bg-white p-2 shadow-lg transition md:hidden dark:bg-slate-900"
+          className="fixed left-4 top-4 z-50 rounded-full bg-card p-2 shadow-lg transition lg:hidden border border-border"
           onClick={() => setIsSidebarOpen((prev) => !prev)}
           aria-label="Toggle navigation menu"
         >
           {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
+        {/* Sidebar - Hidden on mobile, visible on lg+ */}
         <aside
           className={cn(
-            'fixed inset-y-0 left-0 z-40 w-64 border-r border-slate-100 bg-white/90 backdrop-blur-xl transition-transform dark:border-slate-800 dark:bg-slate-900/90 md:translate-x-0',
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+            'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-card/95 lg:backdrop-blur-xl transition-transform',
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           )}
         >
           <div className="flex h-full flex-col">
-            <div className="flex items-center justify-between border-b px-6 py-5 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-border px-6 py-5">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-primary">
                   Talent Search
@@ -253,8 +255,8 @@ export const DashboardShell = ({
                       className={cn(
                         'group flex w-full items-center rounded-2xl px-4 py-3 text-sm font-medium transition-all',
                         isActive
-                          ? 'bg-primary/10 text-primary shadow-sm'
-                          : 'text-muted-foreground hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800'
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
                       )}
                     >
                       <Icon
@@ -275,7 +277,7 @@ export const DashboardShell = ({
               </nav>
             </ScrollArea>
 
-            <div className="border-t px-4 py-5 dark:border-slate-800">
+            <div className="border-t border-border px-4 py-5">
               <div className="flex items-center space-x-3">
                 <Avatar>
                   <AvatarImage src={currentUser?.photoURL || userData?.photoURL} alt="User avatar" />
@@ -294,10 +296,10 @@ export const DashboardShell = ({
           </div>
         </aside>
 
-        <div className="flex w-full flex-col md:pl-64">
-          <header className="sticky top-0 z-30 border-b bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
-            <div className="flex flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between">
-              <div>
+        <div className="flex w-full flex-col lg:pl-64">
+          <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-xl">
+            <div className="flex flex-col gap-3 px-4 sm:px-6 py-4 md:flex-row md:items-center md:justify-between md:gap-4">
+              <div className="pt-6 lg:pt-0">
                 <p className="text-xs uppercase tracking-widest text-muted-foreground">{heading}</p>
                 <h1 className="text-2xl font-semibold tracking-tight text-foreground">{subheading}</h1>
               </div>
@@ -308,7 +310,7 @@ export const DashboardShell = ({
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Search everything..."
-                    className="w-64 rounded-full bg-white/70 dark:bg-slate-900/60"
+                    className="w-64 rounded-full"
                   />
                 </div>
                 <LanguageToggle />
@@ -343,8 +345,8 @@ export const DashboardShell = ({
             </div>
           </header>
 
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-10">
-            <div className="rounded-3xl border border-slate-100/80 bg-white/90 p-4 shadow-xl shadow-slate-200/40 dark:border-slate-800/70 dark:bg-slate-950/70 dark:shadow-slate-900/60 sm:p-6">
+          <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+            <div className="rounded-2xl border border-border bg-card/90 p-4 sm:p-6 shadow-lg">
               {children}
             </div>
           </main>

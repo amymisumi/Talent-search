@@ -14,6 +14,7 @@ import {
   Building,
   Network,
   Star,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -50,26 +51,27 @@ export function RecruiterSidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
+        "hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:h-screen lg:flex-col lg:border-r lg:border-border lg:bg-background/95 lg:backdrop-blur lg:supports-[backdrop-filter]:bg-background/60 transition-all duration-300",
+        isCollapsed ? "lg:w-20" : "lg:w-64"
       )}
     >
       <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b px-4">
+        <div className="flex h-16 items-center justify-between border-b border-border px-4">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
-              <Building className="h-6 w-6 text-primary" />
-              <span className="font-semibold">Recruiter</span>
+              <Building className="h-6 w-6 text-primary flex-shrink-0" />
+              <span className="font-semibold truncate">Recruiter</span>
             </div>
           )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-8 w-8"
+            className="h-8 w-8 flex-shrink-0"
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <Building className="h-4 w-4" />
+            <ChevronLeft className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
           </Button>
         </div>
 
@@ -85,17 +87,18 @@ export function RecruiterSidebar() {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground whitespace-nowrap",
                     isActive && "bg-accent text-accent-foreground",
                     isCollapsed && "justify-center px-2"
                   )}
+                  title={isCollapsed ? item.label : undefined}
                 >
                   <Icon className="h-4 w-4 flex-shrink-0" />
                   {!isCollapsed && (
                     <>
                       <span className="truncate">{item.label}</span>
                       {item.badge && (
-                        <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                        <span className="ml-auto flex-shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
                           {item.badge}
                         </span>
                       )}
@@ -108,7 +111,7 @@ export function RecruiterSidebar() {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="border-t p-4">
+        <div className="border-t border-border p-4">
           {!isCollapsed && <ThemeToggle />}
         </div>
       </div>
