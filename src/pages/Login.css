@@ -1,10 +1,2 @@
-.active-role {
-  background-color: #007bff; /* Primary blue color */
-  color: white;
-  border-color: #007bff;
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-}
+/* Login page styles - using theme-aware Tailwind classes instead */
 
-.active-role:hover {
-  background-color: #0056b3; /* Darker blue on hover */
-}

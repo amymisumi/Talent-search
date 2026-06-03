@@ -180,15 +180,15 @@ export default function Login() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Role Selection */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">Login as</Label>
+              <Label className="text-sm font-medium text-foreground">Login as</Label>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setValue("role", "youth")}
-                  className={`flex-1 py-2 px-4 rounded-md border ${
+                  className={`flex-1 py-2 px-4 rounded-md border transition-colors ${
                     selectedRole === 'youth'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-card-foreground border-border hover:bg-secondary'
                   } text-sm font-medium`}
                 >
                   Youth
@@ -196,10 +196,10 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setValue("role", "recruiter")}
-                  className={`flex-1 py-2 px-4 rounded-md border ${
+                  className={`flex-1 py-2 px-4 rounded-md border transition-colors ${
                     selectedRole === 'recruiter'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-card-foreground border-border hover:bg-secondary'
                   } text-sm font-medium`}
                 >
                   Recruiter
@@ -207,10 +207,10 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setValue("role", "admin")}
-                  className={`flex-1 py-2 px-4 rounded-md border ${
+                  className={`flex-1 py-2 px-4 rounded-md border transition-colors ${
                     selectedRole === 'admin'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-card-foreground border-border hover:bg-secondary'
                   } text-sm font-medium`}
                 >
                   Admin
@@ -298,7 +298,7 @@ export default function Login() {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 h-10"
+            className="w-full flex items-center justify-center py-2 px-4 border border-border rounded-md shadow-sm bg-card text-sm font-medium text-card-foreground hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary h-10 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
