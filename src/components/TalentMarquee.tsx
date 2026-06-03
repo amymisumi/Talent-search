@@ -1,5 +1,4 @@
 const TalentMarquee = () => {
-  // Sample talent photos - replace these with your actual talent photos
   const talentPhotos = [
     'https://media.istockphoto.com/id/1262964438/photo/success-happens-the-moment-you-believe-it-will.jpg?s=612x612&w=0&k=20&c=tpjbR4aaaiB43sneEWgatyFIQOmN3E-3nB5CBE5Idyg=',
     'https://media.istockphoto.com/id/1194465573/photo/portrait-of-smiling-african-american-woman.jpg?s=612x612&w=0&k=20&c=hD6As6gEFZobg44dhiHWkweVcKCv0NvPkk6XQChQKds=',
@@ -11,43 +10,57 @@ const TalentMarquee = () => {
     'https://media.istockphoto.com/id/1422023484/photo/young-woman-using-the-mobile-phone-at-home.jpg?s=612x612&w=0&k=20&c=UuO1apep5uYk5hVHExJP9WtS0bcvbdqIIYpMuKD9wGw=',
   ];
 
-  // Duplicate the array to create a seamless loop
-  const doubleTalentPhotos = [...talentPhotos, ...talentPhotos];
+  // Triple the photos so there's always enough to fill the screen at any width
+  const photos = [...talentPhotos, ...talentPhotos, ...talentPhotos];
 
   return (
-    <section className="py-12 bg-background overflow-hidden">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8">Our Talented Community</h2>
-        <div className="relative w-full overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap">
-            {doubleTalentPhotos.map((photo, index) => (
-              <div 
-                key={index}
-                className="inline-block mx-4 w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg transform hover:scale-105 transition-transform duration-300"
-              >
-                <img 
-                  src={photo} 
-                  alt={`Talent ${index + 1}`} 
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
+    <section className="py-12 bg-background">
+      <div className="container mx-auto px-4 mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-center">Our Talented Community</h2>
+      </div>
+
+      {/* Outer wrapper clips overflow and has fade edges */}
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+        }}
+      >
+        <div className="marquee-track flex items-center gap-6 w-max">
+          {photos.map((photo, index) => (
+            <div
+              key={index}
+              className="flex-shrink-0 w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg hover:scale-110 transition-transform duration-300 cursor-pointer"
+            >
+              <img
+                src={photo}
+                alt={`Talent ${(index % talentPhotos.length) + 1}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          ))}
         </div>
       </div>
+
       <style dangerouslySetInnerHTML={{
         __html: `
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+          @keyframes marquee-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-33.3333%); }
           }
-          .animate-marquee {
-            animation: marquee 30s linear infinite;
-            display: inline-block;
+          .marquee-track {
+            animation: marquee-scroll 30s linear infinite;
+            will-change: transform;
           }
-          .animate-marquee:hover {
+          .marquee-track:hover {
             animation-play-state: paused;
+          }
+          @media (max-width: 640px) {
+            .marquee-track {
+              animation-duration: 20s;
+            }
           }
         `
       }} />
