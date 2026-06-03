@@ -163,13 +163,13 @@ export default function Login() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PHBhdGggZD0iTTM2IDE0YzMuMzEzIDAgNiAyLjY4NyA2IDZzLTIuNjg3IDYtNiA2LTYtMi42ODctNi02IDIuNjg3LTYgNi02ek0yNCA0MGMzLjMxMyAwIDYgMi42ODcgNiA2cy0yLjY4NyA2LTYgNi02LTIuNjg3LTYtNiAyLjY4Ny02IDYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] bg-repeat"></div>
       </div>
 
-      <Card className="w-full max-w-md shadow-2xl relative bg-white border-border">
+      <Card className="w-full max-w-md shadow-2xl relative bg-card border-border">
         <CardHeader className="text-center space-y-3 pb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Globe className="h-10 w-10 text-primary animate-pulse" />
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            TalentHub Africa
+            Talent Search Africa
           </CardTitle>
           <CardDescription className="text-base italic text-muted-foreground">
             "Show the world your skills — log in to your future."
