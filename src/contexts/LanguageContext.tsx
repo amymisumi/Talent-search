@@ -336,7 +336,6 @@ const translations: Record<Language, Record<string, string>> = {
     jobMatches: 'Mechi za Kazi',
     totalMatches: 'mechi jumla',
     noJobMatchesYet: 'Hakuna mechi za kazi bado',
-    pending: 'inasubiri',
     noApplicationsYet: 'Hakuna maombi bado',
     networkConnections: 'Uunganisho wa mtandao',
     conversations: 'mazungumzo',
