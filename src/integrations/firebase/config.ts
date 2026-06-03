@@ -4,7 +4,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCiwbCtj24dnkkPL_GO_EzIOYxrxbQgoxA",
+  apiKey: "AIzaSyDvQEfnF-ZJzWScXhFfOPw7fEqwHSoi2qc",
   authDomain: "africatalent-ec2e9.firebaseapp.com",
   projectId: "africatalent-ec2e9",
   storageBucket: "africatalent-ec2e9.firebasestorage.app",
