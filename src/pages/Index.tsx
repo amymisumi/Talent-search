@@ -1,21 +1,36 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Award, Briefcase, Globe, Shield, Star, Users } from "lucide-react";
 import talentSearchBanner from "@/assets/talent-search-banner.jpg";
 import TalentMarquee from "@/components/TalentMarquee";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const { t } = useLanguage();
+  const { currentUser, userData, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (!loading && currentUser && userData?.role) {
+      if (userData.role === "youth") navigate("/youth-dashboard", { replace: true });
+      else if (userData.role === "recruiter") navigate("/recruiter-dashboard", { replace: true });
+      else if (userData.role === "admin") navigate("/admin-dashboard", { replace: true });
+    }
+  }, [currentUser, userData, loading, navigate]);
+
+  if (loading || (currentUser && userData?.role)) return null;
   
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       {/* Talent Search Banner with Marquee */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent">
+      <section className="relative w-full overflow-hidden bg-[#0a1628]">
         {/* 
           On mobile: use natural image height (object-contain) so text isn't cropped.
           On md+: fixed height with object-cover for a cinematic look.
