@@ -32,6 +32,11 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   const navigate = useNavigate();
   const isDark = theme === 'dark';
 
+  const sidebarClass = cn(
+    'border-r backdrop-blur-xl',
+    isDark ? 'border-slate-700/50 bg-slate-800/95' : 'border-gray-200 bg-white/95'
+  );
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -69,6 +74,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => handleNavClick(item.id)}
               className={cn(
                 'group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200',
@@ -88,6 +94,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
       </div>
       <div className={cn('mt-4 pt-4 border-t', isDark ? 'border-slate-700/50' : 'border-gray-200')}>
         <Button
+          type="button"
           variant="ghost"
           className={cn('w-full justify-start', isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100')}
           onClick={() => navigate('/')}
@@ -102,86 +109,103 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   return (
     <div className={cn('min-h-screen transition-colors duration-300', isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50')}>
 
-      {/* Top Navigation Bar */}
-      <header className={cn('sticky top-0 z-50 border-b backdrop-blur-xl transition-colors duration-300', isDark ? 'border-slate-700/50 bg-slate-800/80' : 'border-gray-200 bg-white/80')}>
-        <div className="flex h-14 sm:h-16 items-center justify-between px-2 sm:px-4 lg:px-6 gap-2">
-          <div className="flex items-center gap-1 sm:gap-4 min-w-0 flex-1">
-            {/* Hamburger */}
-            <Button
-              variant="ghost" size="icon"
-              className={cn('lg:hidden flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10', isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100')}
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              {sidebarOpen ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
-            </Button>
+      {/* Mobile overlay — only when drawer is open */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
-              <div className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex-shrink-0">
-                <Shield className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h1 className={cn('text-xs sm:text-lg font-bold truncate', isDark ? 'text-white' : 'text-gray-900')}>Admin</h1>
-                <p className={cn('text-[10px] hidden sm:block truncate', isDark ? 'text-slate-400' : 'text-gray-500')}>Talent Search Africa</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
-            <div className="hidden md:block relative">
-              <Search className={cn('absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4', isDark ? 'text-slate-400' : 'text-gray-400')} />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className={cn('w-48 lg:w-64 pl-10', isDark ? 'bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400' : 'bg-gray-100 border-gray-300')}
-              />
-            </div>
-
-            <Button variant="ghost" size="icon" className={cn(isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100')} onClick={toggleTheme}>
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-
-            <div className={cn('flex items-center gap-2 border-l pl-2 sm:pl-3', isDark ? 'border-slate-700' : 'border-gray-200')}>
-              <Avatar className="h-8 w-8 sm:h-9 sm:w-9 ring-2 ring-blue-500/50 flex-shrink-0">
-                <AvatarImage src={currentUser?.photoURL || userData?.photoURL} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                  {currentUser?.displayName?.charAt(0)?.toUpperCase() || 'A'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="hidden sm:block min-w-0">
-                <p className={cn('text-sm font-medium truncate max-w-[100px]', isDark ? 'text-white' : 'text-gray-900')}>
-                  {currentUser?.displayName || 'Admin'}
-                </p>
-                <p className={cn('text-xs', isDark ? 'text-slate-400' : 'text-gray-500')}>Administrator</p>
-              </div>
-              <Button variant="ghost" size="icon" className={cn(isDark ? 'text-slate-300 hover:text-red-400 hover:bg-slate-700' : 'text-gray-600 hover:text-red-600 hover:bg-gray-100')} onClick={handleLogout}>
-                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex">
-        {/* Mobile overlay */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      {/* Mobile sidebar — hidden on desktop, no pointer events when closed */}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col pt-16 transition-transform duration-300 lg:hidden',
+          sidebarClass,
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
         )}
+      >
+        <SidebarNav />
+      </aside>
 
-        {/* Sidebar */}
-        <aside className={cn(
-          'fixed inset-y-0 left-0 z-40 w-64 border-r backdrop-blur-xl transition-all duration-300 pt-16',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          isDark ? 'border-slate-700/50 bg-slate-800/95' : 'border-gray-200 bg-white/95'
-        )}>
-          <SidebarNav />
-        </aside>
+      {/* Desktop sidebar — in normal fixed lane, does not cover main content */}
+      <aside
+        className={cn(
+          'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:w-64 lg:flex-col lg:pt-16',
+          sidebarClass
+        )}
+      >
+        <SidebarNav />
+      </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 lg:ml-64 min-w-0">
+      {/* Main column — offset on desktop so content is never under the sidebar */}
+      <div className="flex min-h-screen w-full flex-col lg:pl-64">
+        <header className={cn('sticky top-0 z-50 border-b backdrop-blur-xl transition-colors duration-300', isDark ? 'border-slate-700/50 bg-slate-800/80' : 'border-gray-200 bg-white/80')}>
+          <div className="flex h-14 sm:h-16 items-center justify-between px-2 sm:px-4 lg:px-6 gap-2">
+            <div className="flex items-center gap-1 sm:gap-4 min-w-0 flex-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn('lg:hidden flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10', isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100')}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+              >
+                {sidebarOpen ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
+              </Button>
+
+              <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
+                <div className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex-shrink-0">
+                  <Shield className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className={cn('text-xs sm:text-lg font-bold truncate', isDark ? 'text-white' : 'text-gray-900')}>Admin</h1>
+                  <p className={cn('text-[10px] hidden sm:block truncate', isDark ? 'text-slate-400' : 'text-gray-500')}>Talent Search Africa</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
+              <div className="hidden md:block relative">
+                <Search className={cn('absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4', isDark ? 'text-slate-400' : 'text-gray-400')} />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  className={cn('w-48 lg:w-64 pl-10', isDark ? 'bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400' : 'bg-gray-100 border-gray-300')}
+                />
+              </div>
+
+              <Button type="button" variant="ghost" size="icon" className={cn(isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100')} onClick={toggleTheme}>
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+
+              <div className={cn('flex items-center gap-2 border-l pl-2 sm:pl-3', isDark ? 'border-slate-700' : 'border-gray-200')}>
+                <Avatar className="h-8 w-8 sm:h-9 sm:w-9 ring-2 ring-blue-500/50 flex-shrink-0">
+                  <AvatarImage src={currentUser?.photoURL || userData?.photoURL} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
+                    {currentUser?.displayName?.charAt(0)?.toUpperCase() || 'A'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden sm:block min-w-0">
+                  <p className={cn('text-sm font-medium truncate max-w-[100px]', isDark ? 'text-white' : 'text-gray-900')}>
+                    {currentUser?.displayName || 'Admin'}
+                  </p>
+                  <p className={cn('text-xs', isDark ? 'text-slate-400' : 'text-gray-500')}>Administrator</p>
+                </div>
+                <Button type="button" variant="ghost" size="icon" className={cn(isDark ? 'text-slate-300 hover:text-red-400 hover:bg-slate-700' : 'text-gray-600 hover:text-red-600 hover:bg-gray-100')} onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="relative z-10 flex-1 min-w-0">
           <div className="p-3 sm:p-4 lg:p-6">
             <div className={cn(
-              'rounded-2xl backdrop-blur-xl border shadow-2xl p-4 sm:p-6 lg:p-8 transition-colors duration-300',
+              'rounded-2xl border shadow-2xl p-4 sm:p-6 lg:p-8 transition-colors duration-300',
               isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-white/80 border-gray-200'
             )}>
               {children}

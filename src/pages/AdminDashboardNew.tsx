@@ -170,8 +170,8 @@ const AdminDashboardNew: React.FC = () => {
           {currentUser && (
             <Card className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 border-0 shadow-2xl overflow-hidden">
               <CardContent className="p-4 sm:p-6 md:p-8 text-white relative">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24 blur-3xl"></div>
+                <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl" aria-hidden="true" />
+                <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24 blur-3xl" aria-hidden="true" />
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                   <div className="relative flex-shrink-0">
                       <Avatar className="h-16 w-16 sm:h-24 sm:w-24 ring-4 ring-white/30 shadow-xl">

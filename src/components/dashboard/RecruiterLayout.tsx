@@ -1,11 +1,10 @@
-import { Outlet, useLocation, Navigate, useNavigate, Link } from "react-router-dom";
+import { Outlet, useLocation, Navigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Loader2, Bell, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { RecruiterSidebar } from "@/components/dashboard/RecruiterSidebar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import {
@@ -17,19 +16,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+const getCachedAuthRole = (): string | null => {
+  try {
+    return sessionStorage.getItem("authRole");
+  } catch {
+    return null;
+  }
+};
+
 export function RecruiterLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { currentUser, userData, loading, signOut } = useAuth();
-  useTheme(); // Theme is used for the context, but we don't need the values here
+  useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+  const role = userData?.role || getCachedAuthRole();
+  const isRecruiter = role === "recruiter";
 
-  // Check if user is authenticated
-  // Note: Role checking is handled by ProtectedRoute in App.tsx
-  // This component is only rendered if the user has the 'recruiter' role
-  if (loading) {
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  if (loading && !currentUser) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -37,15 +46,11 @@ export function RecruiterLayout() {
     );
   }
 
-  // Redirect to login if not authenticated
-  // This is a safety check, but ProtectedRoute should have already handled this
   if (!currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Wait for userData to be loaded before rendering
-  // This prevents redirect loops when userData is temporarily null
-  if (!userData || !userData.role) {
+  if (!role) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -53,10 +58,7 @@ export function RecruiterLayout() {
     );
   }
 
-  // Double-check role to prevent rendering if role changed
-  // This is a safety check to prevent showing recruiter dashboard to non-recruiters
-  if (userData.role !== 'recruiter') {
-    // Don't redirect here - let ProtectedRoute handle it to avoid loops
+  if (userData?.role && userData.role !== "recruiter") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -64,59 +66,80 @@ export function RecruiterLayout() {
     );
   }
 
-  // Get user initials for avatar
+  if (!isRecruiter) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   const getInitials = (name?: string) => {
-    if (!name) return 'U';
+    if (!name) return "U";
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .substring(0, 2);
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background">
       <RecruiterSidebar
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
       />
-      
-      <div className="flex-1 flex flex-col lg:pl-64">
-        {/* Top Navigation */}
-        <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b bg-background px-2 sm:px-4 md:px-6">
-          {/* Mobile Menu Toggle */}
+
+      <div
+        className={cn(
+          "flex min-h-screen w-full flex-col transition-[padding] duration-300",
+          sidebarCollapsed ? "lg:pl-20" : "lg:pl-64"
+        )}
+      >
+        <header className="sticky top-0 z-50 flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b bg-background px-2 sm:px-4 md:px-6">
           <Button
+            type="button"
             variant="ghost"
             size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen((open) => !open)}
             className="lg:hidden"
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
 
           <div className="flex flex-1 items-center gap-4 justify-end">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="rounded-full" aria-label="View notifications">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                aria-label="View notifications"
+              >
                 <Bell className="h-5 w-5" />
                 <span className="sr-only">View notifications</span>
               </Button>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button type="button" variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={userData?.photoURL || ''} alt={userData?.displayName || 'User'} />
-                      <AvatarFallback>{getInitials(userData?.displayName || userData?.email)}</AvatarFallback>
+                      <AvatarImage src={userData?.photoURL || ""} alt={userData?.displayName || "User"} />
+                      <AvatarFallback>
+                        {getInitials(userData?.displayName || userData?.email)}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="w-56" align="end">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {userData?.displayName || 'User'}
+                        {userData?.displayName || "User"}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {userData?.email}
@@ -131,17 +154,14 @@ export function RecruiterLayout() {
                     <Link to="/recruiter/settings">Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut()}>
-                    Log out
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut()}>Log out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6" role="main">
+        <main className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6" role="main">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>

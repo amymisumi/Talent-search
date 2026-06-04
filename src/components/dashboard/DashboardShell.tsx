@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Award, BarChart3, Bell, Bot, Briefcase, FileText, Home,
   Menu, MessageSquare, Settings, User, Users, X, Star,
@@ -8,7 +8,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -44,7 +43,7 @@ const getDefaultNavItems = (t: (key: string) => string): DashboardNavItem[] => [
   { label: t('reviewsAndRatings'), path: '/youth/reviews', icon: Star },
   { label: t('aiAssistant'), path: '/youth/ai-assistant', icon: Bot },
   { label: t('analytics'), path: '/youth/analytics', icon: BarChart3 },
-  { label: t('network'), path: '/youth/dashboard?tab=network', icon: Users },
+  { label: t('network'), path: '/youth-dashboard?tab=network', icon: Users },
   { label: t('settings'), path: '/youth/settings', icon: Settings },
 ];
 
@@ -68,9 +67,9 @@ const NotificationDropdown = ({
     <div ref={dropdownRef} className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-80 rounded-xl border bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 z-50">
       <div className="flex items-center justify-between border-b px-4 py-3 dark:border-slate-800">
         <p className="text-sm font-medium">Notifications</p>
-        <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
+        <Button type="button" variant="ghost" size="sm" onClick={onClose}>Close</Button>
       </div>
-      <ScrollArea className="max-h-96">
+      <div className="max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">You are all caught up!</p>
         ) : (
@@ -78,6 +77,7 @@ const NotificationDropdown = ({
             {notifications.map((n) => (
               <button
                 key={n.id}
+                type="button"
                 onClick={() => onMarkAsRead(n.id)}
                 className={cn(
                   'w-full px-4 py-3 text-left transition-colors',
@@ -93,10 +93,40 @@ const NotificationDropdown = ({
             ))}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 };
+
+function isNavItemActive(
+  item: DashboardNavItem,
+  pathname: string,
+  searchTab: string | null
+): boolean {
+  const [itemPath, itemQuery] = item.path.split('?');
+  const itemTab = new URLSearchParams(itemQuery || '').get('tab');
+
+  if (itemTab) {
+    const normalizedPath = itemPath.replace('/youth/dashboard', '/youth-dashboard');
+    const onDashboard =
+      pathname === '/youth-dashboard' ||
+      pathname === '/youth/dashboard';
+    return onDashboard && searchTab === itemTab;
+  }
+
+  if (itemPath === '/youth-dashboard' || itemPath === '/youth/dashboard') {
+    const onDashboard =
+      pathname === '/youth-dashboard' ||
+      pathname === '/youth/dashboard';
+    return onDashboard && (!searchTab || searchTab === 'overview');
+  }
+
+  if (itemPath === '/admin-dashboard') {
+    return pathname === '/admin-dashboard' && (!searchTab || searchTab === 'overview');
+  }
+
+  return pathname === itemPath || pathname.startsWith(itemPath + '/');
+}
 
 export const DashboardShell = ({
   children,
@@ -115,7 +145,6 @@ export const DashboardShell = ({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!currentUser?.uid) return;
@@ -125,12 +154,12 @@ export const DashboardShell = ({
     return () => unsubscribe?.();
   }, [currentUser?.uid]);
 
-  // Close sidebar on route change
-  useEffect(() => { setIsSidebarOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname, location.search]);
 
   const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);
 
-  const activePath = location.pathname;
   const activeTab = new URLSearchParams(location.search).get('tab');
 
   const initials = useMemo(() => {
@@ -139,64 +168,81 @@ export const DashboardShell = ({
   }, [currentUser?.displayName, userData?.displayName]);
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-border px-6 py-5">
-        <div>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-4 sm:px-6 sm:py-5">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">Talent Search</p>
-          <p className="text-lg font-bold">{t('dashboard')}</p>
+          <p className="text-lg font-bold truncate">{t('dashboard')}</p>
         </div>
         <ThemeToggle />
       </div>
 
-      <ScrollArea className="flex-1">
-        <nav className="space-y-1 px-4 py-6">
+      <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 sm:px-4 sm:py-6">
+        <div className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const tabMap: Record<string, string> = {
-              'Overview': 'overview', 'Users': 'users', 'Verification': 'verification',
-              'Reviews': 'reviews', 'Network': 'network', 'Analytics': 'analytics',
-              'Reports': 'reports', 'Announcements': 'announcements', 'Settings': 'settings',
-            };
-            const expectedTab = tabMap[item.label] || item.label.toLowerCase().replace(/\s+/g, '-');
-            const isActive = activePath === item.path &&
-              (!activeTab || expectedTab === activeTab ||
-               (activePath === '/admin-dashboard' && expectedTab === activeTab));
+            const isActive = isNavItemActive(item, location.pathname, activeTab);
+
+            const linkClass = cn(
+              'relative z-10 flex w-full items-center rounded-2xl px-4 py-2.5 text-sm font-medium transition-all',
+              isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+            );
+
+            if (item.onClick) {
+              return (
+                <button
+                  key={item.path + item.label}
+                  type="button"
+                  onClick={() => {
+                    item.onClick?.();
+                    setIsSidebarOpen(false);
+                  }}
+                  className={linkClass}
+                >
+                  <Icon className={cn('mr-3 h-4 w-4 flex-shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                  <span className="truncate">{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{item.badge}</span>
+                  )}
+                </button>
+              );
+            }
 
             return (
-              <button
+              <Link
                 key={item.path + item.label}
-                onClick={() => {
-                  if (item.onClick) item.onClick();
-                  else navigate(item.path);
-                  setIsSidebarOpen(false);
-                }}
-                className={cn(
-                  'group flex w-full items-center rounded-2xl px-4 py-3 text-sm font-medium transition-all',
-                  isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
-                )}
+                to={item.path}
+                onClick={() => setIsSidebarOpen(false)}
+                className={linkClass}
               >
-                <Icon className={cn('mr-3 h-4 w-4', isActive ? 'text-primary' : 'text-muted-foreground')} />
-                <span>{item.label}</span>
+                <Icon className={cn('mr-3 h-4 w-4 flex-shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                <span className="truncate">{item.label}</span>
                 {item.badge && (
                   <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{item.badge}</span>
                 )}
-              </button>
+              </Link>
             );
           })}
-        </nav>
-      </ScrollArea>
+        </div>
+      </nav>
 
-      <div className="border-t border-border px-4 py-5">
+      <div className="shrink-0 border-t border-border px-4 py-4 sm:py-5">
         <div className="flex items-center space-x-3">
-          <Avatar>
+          <Avatar className="h-9 w-9 flex-shrink-0">
             <AvatarImage src={currentUser?.photoURL || userData?.photoURL} alt="User avatar" />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">
               {userData?.displayName || currentUser?.displayName || 'Registered talent'}
             </p>
-            <Button variant="ghost" size="sm" className="px-0 text-xs text-muted-foreground" onClick={signOut}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto px-0 py-0 text-xs text-muted-foreground"
+              onClick={signOut}
+            >
               Sign out
             </Button>
           </div>
@@ -205,49 +251,56 @@ export const DashboardShell = ({
     </div>
   );
 
+  const sidebarSurface = 'border-border bg-card';
+
   return (
     <div className="min-h-screen bg-background">
-      {/* ✅ Mobile sidebar overlay */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
-      {/* ✅ Mobile sidebar — slides in from left */}
-      <aside className={cn(
-        'fixed inset-y-0 left-0 z-50 w-72 flex-col border-r border-border bg-card/95 backdrop-blur-xl transition-transform duration-300 lg:hidden',
-        isSidebarOpen ? 'flex translate-x-0' : 'flex -translate-x-full'
-      )}>
+      {/* Mobile drawer */}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r transition-transform duration-300 lg:hidden',
+          sidebarSurface,
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
+        )}
+      >
         <SidebarContent />
       </aside>
 
-      {/* ✅ Desktop sidebar — always visible on lg+ */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border lg:bg-card/95 lg:backdrop-blur-xl">
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:w-64 lg:flex-col lg:border-r',
+          sidebarSurface
+        )}
+      >
         <SidebarContent />
       </aside>
 
-      <div className="flex w-full flex-col lg:pl-64">
-        {/* Header */}
-        <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-xl">
+      <div className="flex min-h-screen w-full flex-col lg:pl-64">
+        <header className="sticky top-0 z-50 border-b border-border bg-card/95">
           <div className="flex items-center gap-3 px-4 sm:px-6 py-3">
-            {/* ✅ Hamburger — mobile only */}
             <button
+              type="button"
               className="rounded-full bg-card p-2 shadow border border-border lg:hidden flex-shrink-0"
               onClick={() => setIsSidebarOpen((prev) => !prev)}
-              aria-label="Toggle navigation menu"
+              aria-label={isSidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
             >
               {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
 
-            {/* Heading — truncates on small screens */}
             <div className="flex-1 min-w-0">
               <p className="text-xs uppercase tracking-widest text-muted-foreground truncate">{heading}</p>
               <h1 className="text-lg sm:text-2xl font-semibold tracking-tight text-foreground truncate">{subheading}</h1>
             </div>
 
-            {/* Right actions */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <div className="hidden md:block">
                 <Input
@@ -259,7 +312,13 @@ export const DashboardShell = ({
               </div>
               <LanguageToggle />
               <div className="relative">
-                <Button variant="ghost" size="icon" className="relative" onClick={() => setIsNotificationsOpen((p) => !p)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => setIsNotificationsOpen((p) => !p)}
+                >
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-semibold text-destructive-foreground">
@@ -284,8 +343,8 @@ export const DashboardShell = ({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
-          <div className="rounded-lg sm:rounded-2xl border border-border bg-card/90 p-2 sm:p-4 md:p-6 shadow-lg">
+        <main className="relative z-10 flex-1 overflow-y-auto px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
+          <div className="rounded-lg sm:rounded-2xl border border-border bg-card p-2 sm:p-4 md:p-6 shadow-lg">
             {children}
           </div>
         </main>

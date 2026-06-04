@@ -19,13 +19,7 @@ import { JobTemplates } from "@/components/dashboard/JobTemplates";
 export function RecruiterRouter() {
   return (
     <Routes>
-      <Route
-        element={
-          <RecruiterLayout>
-            <Outlet />
-          </RecruiterLayout>
-        }
-      >
+      <Route element={<RecruiterLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="find-talent" element={<EnhancedTalentSearch />} />
