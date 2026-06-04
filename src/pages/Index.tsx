@@ -15,7 +15,7 @@ const Index = () => {
       <Navbar />
       
       {/* Talent Search Banner with Marquee */}
-      <section className="relative w-full overflow-hidden bg-[#0a1628]">
+      <section className="relative w-full overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent">
         {/* 
           On mobile: use natural image height (object-contain) so text isn't cropped.
           On md+: fixed height with object-cover for a cinematic look.
