@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,16 +17,12 @@ import { Globe, ArrowRight, Home } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["youth", "recruiter", "admin"], {
-    required_error: "Please select your role",
-  }),
-  rememberMe: z.boolean().optional(),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginForm = {
+  email: string;
+  password: string;
+  role: "youth" | "recruiter" | "admin";
+  rememberMe?: boolean;
+};
 
 const redirectToRole = (role: string, navigate: ReturnType<typeof useNavigate>) => {
   switch (role) {
@@ -42,7 +38,20 @@ export default function Login() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email(t('invalidEmail')),
+        password: z.string().min(6, t('passwordMinLength')),
+        role: z.enum(["youth", "recruiter", "admin"], {
+          required_error: t('selectRoleRequired'),
+        }),
+        rememberMe: z.boolean().optional(),
+      }),
+    [language, t]
+  );
 
   const {
     register,
@@ -57,44 +66,50 @@ export default function Login() {
 
   const selectedRole = watch("role");
 
+  const roleLabel = (role: string) => {
+    if (role === 'youth') return t('youth');
+    if (role === 'recruiter') return t('recruiter');
+    if (role === 'admin') return t('admin');
+    return role;
+  };
+
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, data.email.trim(), data.password);
       const user = userCredential.user;
-      if (!user) throw new Error('Failed to sign in. Please try again.');
+      if (!user) throw new Error(t('failedSignInRetry'));
 
       const userRole = await getUserRole(user.uid);
 
       if (userRole && userRole !== data.role) {
-        throw new Error(`This account is registered as "${userRole}". Please select that role.`);
+        throw new Error(t('roleMismatch').replace('{role}', roleLabel(userRole)));
       }
       if (!userRole) {
         await setUserRole(user.uid, data.role);
       }
 
       toast({
-        title: "Login successful!",
-        description: `Welcome back! Redirecting to your ${data.role} dashboard...`,
+        title: t('loginSuccessful'),
+        description: t('redirectingToDashboard').replace('{role}', roleLabel(data.role)),
       });
 
       redirectToRole(data.role, navigate);
     } catch (error: any) {
-      let errorMessage = 'Failed to sign in. Please try again.';
-      if (error.code === 'auth/user-not-found')    errorMessage = 'No account found with this email.';
-      else if (error.code === 'auth/wrong-password') errorMessage = 'Incorrect password.';
-      else if (error.code === 'auth/too-many-requests') errorMessage = 'Too many attempts. Try again later.';
-      else if (error.code === 'auth/invalid-email') errorMessage = 'Please enter a valid email address.';
-      else if (error.code === 'auth/user-disabled') errorMessage = 'This account has been disabled.';
+      let errorMessage = t('failedSignInRetry');
+      if (error.code === 'auth/user-not-found')    errorMessage = t('noAccountFound');
+      else if (error.code === 'auth/wrong-password') errorMessage = t('incorrectPassword');
+      else if (error.code === 'auth/too-many-requests') errorMessage = t('tooManyAttempts');
+      else if (error.code === 'auth/invalid-email') errorMessage = t('invalidEmail');
+      else if (error.code === 'auth/user-disabled') errorMessage = t('accountDisabled');
       else if (error.message) errorMessage = error.message;
 
-      toast({ title: 'Login failed', description: errorMessage, variant: 'destructive' });
+      toast({ title: t('loginFailed'), description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
@@ -102,25 +117,21 @@ export default function Login() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if this user already has a role in Firestore
       const existingRole = await getUserRole(user.uid);
 
       if (existingRole) {
-        // Returning user — use their stored role
         toast({
-          title: "Welcome back!",
-          description: `Redirecting to your ${existingRole} dashboard...`,
+          title: t('welcomeBackGoogle'),
+          description: t('redirectingToDashboard').replace('{role}', roleLabel(existingRole)),
         });
         redirectToRole(existingRole, navigate);
       } else {
-        // New user via Google — assign the role they selected on the form
         await setUserRole(user.uid, selectedRole);
         toast({
-          title: "Account created!",
-          description: `Welcome to Talent Search Africa!`,
+          title: t('accountCreatedGoogle'),
+          description: t('accountCreatedGoogleDesc'),
         });
 
-        // Wait for auth state to be confirmed before navigating
         await new Promise<void>((resolve) => {
           const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) { unsubscribe(); resolve(); }
@@ -130,13 +141,12 @@ export default function Login() {
         redirectToRole(selectedRole, navigate);
       }
     } catch (error: any) {
-      // User closed the popup — don't show an error
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         return;
       }
       toast({
-        title: "Google sign-in failed",
-        description: error.message || "Something went wrong. Please try again.",
+        title: t('googleSignInFailed'),
+        description: error.message || t('googleSignInFailedDesc'),
         variant: "destructive",
       });
     } finally {
@@ -156,84 +166,77 @@ export default function Login() {
             <Globe className="h-10 w-10 text-primary animate-pulse" />
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Talent Search Africa
+            {t('appName')}
           </CardTitle>
           <CardDescription className="text-base italic text-muted-foreground">
-            "Show the world your skills — log in to your future."
+            {t('loginTagline')}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Role Selection */}
+          <form key={language} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-foreground">Login as</Label>
+              <Label className="text-sm font-medium text-foreground">{t('loginAs')}</Label>
               <div className="flex gap-3">
                 {(['youth', 'recruiter', 'admin'] as const).map((role) => (
                   <button
                     key={role}
                     type="button"
                     onClick={() => setValue("role", role)}
-                    className={`flex-1 py-2 px-4 rounded-md border transition-colors text-sm font-medium capitalize ${
+                    className={`flex-1 py-2 px-4 rounded-md border transition-colors text-sm font-medium ${
                       selectedRole === role
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-card text-card-foreground border-border hover:bg-secondary'
                     }`}
                   >
-                    {role}
+                    {roleLabel(role)}
                   </button>
                 ))}
               </div>
               {errors.role && <p className="text-sm text-red-500">{errors.role.message}</p>}
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" {...register("email")} placeholder="your.email@example.com" className="h-11" />
+              <Label htmlFor="email">{t('emailAddress')}</Label>
+              <Input id="email" type="email" {...register("email")} placeholder={t('emailPlaceholder')} className="h-11" />
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
 
-            {/* Password */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('password')}</Label>
                 <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Forgot Password?
+                  {t('forgotPassword')}
                 </Link>
               </div>
-              <Input id="password" type="password" {...register("password")} placeholder="Enter your password" className="h-11" />
+              <Input id="password" type="password" {...register("password")} placeholder={t('passwordPlaceholder')} className="h-11" />
               {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
             </div>
 
-            {/* Remember Me */}
             <div className="flex items-center space-x-2">
               <Checkbox id="rememberMe" onCheckedChange={(checked) => setValue("rememberMe", checked as boolean)} />
               <label htmlFor="rememberMe" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Remember me
+                {t('rememberMe')}
               </label>
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full h-11 text-base bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity">
-              {isLoading ? "Signing in..." : "Login to Dashboard"}
+              {isLoading ? t('signingIn') : t('loginToDashboard')}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </form>
 
-          {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">{t('orContinueWith')}</span>
             </div>
           </div>
 
-          {/* Google Sign-In */}
-          {/* Hint for new users */}
           <p className="text-xs text-center text-muted-foreground -mb-2">
-            New here? Select your role above first, then sign in with Google to create your account.
+            {t('googleSignInHint')}
           </p>
           <button
             type="button"
@@ -247,7 +250,7 @@ export default function Login() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
-                Signing in...
+                {t('signingIn')}
               </span>
             ) : (
               <>
@@ -257,26 +260,24 @@ export default function Login() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Sign in with Google
+                {t('signInWithGoogle')}
               </>
             )}
           </button>
 
-          {/* Sign Up Links */}
           <div className="space-y-2 text-center text-sm">
             <p className="text-muted-foreground">
-              Don't have an account?{" "}
-              <Link to="/youth-signup" className="text-primary hover:underline font-medium">Create Youth Account</Link>
+              {t('dontHaveAccount')}
+              <Link to="/youth-signup" className="text-primary hover:underline font-medium">{t('createYouthAccount')}</Link>
             </p>
             <p className="text-muted-foreground">
-              Recruiter?{" "}
-              <Link to="/recruiter-signup" className="text-primary hover:underline font-medium">Register here</Link>
+              {t('recruiterQuestion')}{" "}
+              <Link to="/recruiter-signup" className="text-primary hover:underline font-medium">{t('recruiterRegister')}</Link>
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Back to Home */}
       <div className="absolute top-4 left-4 md:top-6 md:left-6 z-50">
         <Link to="/" className="group flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors bg-white/80 backdrop-blur-sm rounded-md border border-border hover:border-primary/20 shadow-sm">
           <Home className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
@@ -284,7 +285,6 @@ export default function Login() {
         </Link>
       </div>
 
-      {/* Language Toggle */}
       <div className="absolute top-4 right-4 md:top-6 md:right-6 z-50">
         <LanguageToggle />
       </div>
