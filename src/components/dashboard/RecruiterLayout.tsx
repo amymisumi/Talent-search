@@ -79,7 +79,7 @@ export function RecruiterLayout() {
       
       <div className="flex-1 flex flex-col lg:pl-64">
         {/* Top Navigation */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b bg-background px-2 sm:px-4 md:px-6">
           {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"

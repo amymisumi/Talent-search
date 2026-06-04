@@ -136,16 +136,16 @@ const StageColumn: React.FC<StageColumnProps> = ({
   onMove
 }) => {
   return (
-    <div className="flex-1 min-w-[280px]">
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium flex items-center justify-between">
-            <span>{title}</span>
-            <Badge variant="secondary">{applications.length}</Badge>
+    <div className="flex-1 min-w-[260px] sm:min-w-[280px]">
+      <Card className="h-full flex flex-col">
+        <CardHeader className="pb-2 sm:pb-3">
+          <CardTitle className="text-xs sm:text-sm font-medium flex items-center justify-between gap-2">
+            <span className="truncate">{title}</span>
+            <Badge variant="secondary" className="text-xs flex-shrink-0">{applications.length}</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-2">
-          <ScrollArea className="h-[600px]">
+        <CardContent className="p-1 sm:p-2 flex-1 overflow-hidden">
+          <ScrollArea className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
             {applications.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 No applications
@@ -349,7 +349,7 @@ export const ATSKanbanBoard: React.FC = () => {
 
       {/* Application Detail Dialog */}
       <Dialog open={showApplicationDetail} onOpenChange={setShowApplicationDetail}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-full sm:max-w-2xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle>
               {selectedApplication?.userName} - {selectedApplication?.jobTitle}

@@ -104,29 +104,29 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
       {/* Top Navigation Bar */}
       <header className={cn('sticky top-0 z-50 border-b backdrop-blur-xl transition-colors duration-300', isDark ? 'border-slate-700/50 bg-slate-800/80' : 'border-gray-200 bg-white/80')}>
-        <div className="flex h-16 items-center justify-between px-3 sm:px-4 lg:px-6">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        <div className="flex h-14 sm:h-16 items-center justify-between px-2 sm:px-4 lg:px-6 gap-2">
+          <div className="flex items-center gap-1 sm:gap-4 min-w-0 flex-1">
             {/* Hamburger */}
             <Button
               variant="ghost" size="icon"
-              className={cn('lg:hidden flex-shrink-0', isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100')}
+              className={cn('lg:hidden flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10', isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100')}
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sidebarOpen ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
             </Button>
 
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex-shrink-0">
-                <Shield className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
+              <div className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex-shrink-0">
+                <Shield className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-white" />
               </div>
-              <div className="min-w-0">
-                <h1 className={cn('text-sm sm:text-lg font-bold truncate', isDark ? 'text-white' : 'text-gray-900')}>Admin Panel</h1>
-                <p className={cn('text-xs hidden sm:block', isDark ? 'text-slate-400' : 'text-gray-500')}>Talent Search Africa</p>
+              <div className="min-w-0 flex-1">
+                <h1 className={cn('text-xs sm:text-lg font-bold truncate', isDark ? 'text-white' : 'text-gray-900')}>Admin</h1>
+                <p className={cn('text-[10px] hidden sm:block truncate', isDark ? 'text-slate-400' : 'text-gray-500')}>Talent Search Africa</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
             <div className="hidden md:block relative">
               <Search className={cn('absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4', isDark ? 'text-slate-400' : 'text-gray-400')} />
               <Input

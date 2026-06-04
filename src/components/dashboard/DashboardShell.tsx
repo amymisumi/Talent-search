@@ -254,7 +254,7 @@ export const DashboardShell = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search..."
-                  className="w-48 lg:w-64 rounded-full"
+                  className="w-32 sm:w-48 lg:w-64 rounded-full text-sm"
                 />
               </div>
               <LanguageToggle />
@@ -284,8 +284,8 @@ export const DashboardShell = ({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6">
-          <div className="rounded-2xl border border-border bg-card/90 p-3 sm:p-6 shadow-lg">
+        <main className="flex-1 overflow-y-auto px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
+          <div className="rounded-lg sm:rounded-2xl border border-border bg-card/90 p-2 sm:p-4 md:p-6 shadow-lg">
             {children}
           </div>
         </main>

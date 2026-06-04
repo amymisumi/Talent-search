@@ -494,27 +494,27 @@ export const EnhancedTalentSearch: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Find Talent</h2>
-          <p className="text-muted-foreground">Search and connect with top talent</p>
+          <h2 className="text-xl sm:text-2xl font-bold">Find Talent</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">Search and connect with top talent</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           {selectedCandidates.length > 0 && (
-            <Button variant="outline" onClick={handleCompareCandidates}>
-              <GitCompare className="h-4 w-4 mr-2" />
-              Compare ({selectedCandidates.length})
+            <Button variant="outline" onClick={handleCompareCandidates} className="w-full sm:w-auto text-xs sm:text-sm">
+              <GitCompare className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Compare</span> ({selectedCandidates.length})
             </Button>
           )}
-          <Button variant="outline" onClick={() => setShowAIMatch(true)}>
-            <Sparkles className="h-4 w-4 mr-2" />
-            AI Matching
+          <Button variant="outline" onClick={() => setShowAIMatch(true)} className="w-full sm:w-auto text-xs sm:text-sm">
+            <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">AI</span> Matching
           </Button>
-          <Button variant="outline" onClick={handleSaveSearch}>
-            <Save className="h-4 w-4 mr-2" />
-            Save Search
+          <Button variant="outline" onClick={handleSaveSearch} className="w-full sm:w-auto text-xs sm:text-sm">
+            <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">Save</span> Search
           </Button>
         </div>
       </div>
@@ -577,12 +577,12 @@ export const EnhancedTalentSearch: React.FC = () => {
           {/* Advanced Filters */}
           {showFilters && (
             <Tabs defaultValue="skills" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="skills">Skills</TabsTrigger>
-                <TabsTrigger value="location">Location</TabsTrigger>
-                <TabsTrigger value="experience">Experience</TabsTrigger>
-                <TabsTrigger value="education">Education</TabsTrigger>
-                <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 text-xs sm:text-sm">
+                <TabsTrigger value="skills" className="text-xs sm:text-sm px-1 sm:px-3">Skills</TabsTrigger>
+                <TabsTrigger value="location" className="text-xs sm:text-sm px-1 sm:px-3">Location</TabsTrigger>
+                <TabsTrigger value="experience" className="text-xs sm:text-sm px-1 sm:px-3">Exp</TabsTrigger>
+                <TabsTrigger value="education" className="text-xs sm:text-sm px-1 sm:px-3 hidden sm:block">Education</TabsTrigger>
+                <TabsTrigger value="other" className="text-xs sm:text-sm px-1 sm:px-3 hidden sm:block">Other</TabsTrigger>
               </TabsList>
 
               <TabsContent value="skills" className="space-y-4 mt-4">

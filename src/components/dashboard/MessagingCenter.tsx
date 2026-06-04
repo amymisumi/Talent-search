@@ -331,7 +331,7 @@ export const MessagingCenter: React.FC = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 min-h-[calc(100vh-180px)] h-[calc(100vh-180px)]">
       {/* Connections List */}
       <Card className="lg:col-span-1 flex flex-col">
         <CardHeader>

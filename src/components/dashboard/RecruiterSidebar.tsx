@@ -57,21 +57,21 @@ export function RecruiterSidebar() {
     >
       <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b border-border px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between border-b border-border px-3 sm:px-4 gap-2">
           {!isCollapsed && (
-            <div className="flex items-center gap-2">
-              <Building className="h-6 w-6 text-primary flex-shrink-0" />
-              <span className="font-semibold truncate">Recruiter</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Building className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+              <span className="font-semibold text-sm sm:text-base truncate">Recruiter</span>
             </div>
           )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-8 w-8 flex-shrink-0"
+            className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <ChevronLeft className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
+            <ChevronLeft className={cn("h-4 w-4 sm:h-5 sm:w-5 transition-transform", isCollapsed && "rotate-180")} />
           </Button>
         </div>
 
