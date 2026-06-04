@@ -10,7 +10,7 @@ import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { db, storage } from '@/integrations/firebase/config';
+import { db, storage } from '@/integrations/firebase/client';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { toast } from 'sonner';
 

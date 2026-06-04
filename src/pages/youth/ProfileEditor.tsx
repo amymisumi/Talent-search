@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../integrations/firebase/config';
+import { storage } from '../../integrations/firebase/client';
 import { v4 as uuidv4 } from 'uuid';
 import * as yup from 'yup';
 import imageCompression from 'browser-image-compression';

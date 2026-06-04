@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/integrations/firebase/config';
+import { auth } from '@/integrations/firebase/client';
 import { useNavigate } from 'react-router-dom';
 
 interface RecruiterDashboardHeaderProps {

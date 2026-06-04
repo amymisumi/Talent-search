@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { auth } from "../integrations/firebase/config";
+import { auth } from "../integrations/firebase/client";
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 

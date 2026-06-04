@@ -26,7 +26,7 @@ import {
   Globe
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { auth } from '../../integrations/firebase/config';
+import { auth } from '../../integrations/firebase/client';
 import { signOut } from 'firebase/auth';
 import { useToast } from '../../hooks/use-toast';
 

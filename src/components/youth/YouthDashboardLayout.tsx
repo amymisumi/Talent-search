@@ -23,7 +23,7 @@ import {
   onSnapshot,
   Timestamp
 } from 'firebase/firestore';
-import { db } from '@/integrations/firebase/config';
+import { db } from '@/integrations/firebase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 

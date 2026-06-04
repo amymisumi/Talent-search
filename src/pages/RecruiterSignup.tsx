@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { auth } from "@/integrations/firebase/config";
+import { auth } from "@/integrations/firebase/client";
 import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { createProfile, setUserRole, uploadFile } from "@/integrations/firebase/services";
 import { Button } from "@/components/ui/button";
