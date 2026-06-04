@@ -131,35 +131,35 @@ export default function RecruiterSignup() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
             <div className="space-y-3">
               <Label htmlFor="companyName">Company Name *</Label>
-              <Input id="companyName" placeholder="Enter company name" {...register("companyName")} />
+              <Input id="companyName" placeholder="Enter company name" autoComplete="off" {...register("companyName")} />
               {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="recruiterName">Recruiter's Full Name *</Label>
-              <Input id="recruiterName" placeholder="Enter your full name" {...register("recruiterName")} />
+              <Input id="recruiterName" placeholder="Enter your full name" autoComplete="off" {...register("recruiterName")} />
               {errors.recruiterName && <p className="text-sm text-red-500">{errors.recruiterName.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="email">Work Email *</Label>
-              <Input id="email" type="email" {...register("email")} placeholder="your.email@company.com" />
+              <Input id="email" type="email" autoComplete="new-email" {...register("email")} placeholder="your.email@company.com" />
               {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="password">Password *</Label>
-              <Input id="password" type="password" {...register("password")} placeholder="Minimum 8 characters" />
+              <Input id="password" type="password" autoComplete="new-password" {...register("password")} placeholder="Minimum 8 characters" />
               {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="confirmPassword">Confirm Password *</Label>
-              <Input id="confirmPassword" type="password" {...register("confirmPassword")} placeholder="Re-enter your password" />
+              <Input id="confirmPassword" type="password" autoComplete="new-password" {...register("confirmPassword")} placeholder="Re-enter your password" />
               {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="country">Country *</Label>
-              <Input id="country" placeholder="Enter your country" {...register("country")} />
+              <Input id="country" placeholder="Enter your country" autoComplete="off" {...register("country")} />
               {errors.country && <p className="text-sm text-red-500">{errors.country.message}</p>}
             </div>
             <div className="space-y-3">
@@ -180,12 +180,12 @@ export default function RecruiterSignup() {
             </div>
             <div className="space-y-3">
               <Label htmlFor="companyWebsite">Company Website (Optional)</Label>
-              <Input id="companyWebsite" type="url" placeholder="https://example.com" {...register("companyWebsite")} />
+              <Input id="companyWebsite" type="url" autoComplete="off" placeholder="https://example.com" {...register("companyWebsite")} />
               {errors.companyWebsite && <p className="text-sm text-red-500">{errors.companyWebsite.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="companyDescription">Company Description *</Label>
-              <Textarea id="companyDescription" placeholder="Tell us about your company..." {...register("companyDescription")} className="min-h-[100px]" />
+              <Textarea id="companyDescription" placeholder="Tell us about your company..." autoComplete="off" {...register("companyDescription")} className="min-h-[100px]" />
               {errors.companyDescription && <p className="text-sm text-red-500">{errors.companyDescription.message}</p>}
             </div>
             <div className="space-y-3">

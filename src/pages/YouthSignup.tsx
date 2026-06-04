@@ -153,22 +153,22 @@ export default function YouthSignup() {
           <>
             <div className="space-y-3">
               <Label htmlFor="fullName">Full Name *</Label>
-              <Input id="fullName" placeholder="Enter your full name" {...register("fullName")} />
+              <Input id="fullName" placeholder="Enter your full name" autoComplete="off" {...register("fullName")} />
               {errors.fullName && <p className="text-sm text-red-500">{errors.fullName.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="email">Email Address *</Label>
-              <Input id="email" type="email" placeholder="your.email@example.com" {...register("email")} />
+              <Input id="email" type="email" placeholder="your.email@example.com" autoComplete="new-email" {...register("email")} />
               {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="password">Password *</Label>
-              <Input id="password" type="password" placeholder="Minimum 8 characters" {...register("password")} />
+              <Input id="password" type="password" placeholder="Minimum 8 characters" autoComplete="new-password" {...register("password")} />
               {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="confirmPassword">Confirm Password *</Label>
-              <Input id="confirmPassword" type="password" placeholder="Re-enter your password" {...register("confirmPassword")} />
+              <Input id="confirmPassword" type="password" placeholder="Re-enter your password" autoComplete="new-password" {...register("confirmPassword")} />
               {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
             </div>
             <div className="space-y-3">
@@ -186,22 +186,22 @@ export default function YouthSignup() {
           <>
             <div className="space-y-3">
               <Label htmlFor="country">Country *</Label>
-              <Input id="country" placeholder="Enter your country" {...register("country")} />
+              <Input id="country" placeholder="Enter your country" autoComplete="off" {...register("country")} />
               {errors.country && <p className="text-sm text-red-500">{errors.country.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="city">City *</Label>
-              <Input id="city" placeholder="Enter your city" {...register("city")} />
+              <Input id="city" placeholder="Enter your city" autoComplete="off" {...register("city")} />
               {errors.city && <p className="text-sm text-red-500">{errors.city.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="age">Age *</Label>
-              <Input id="age" type="number" min="16" max="100" placeholder="Enter your age" {...register("age", { valueAsNumber: true })} />
+              <Input id="age" type="number" min="16" max="100" placeholder="Enter your age" autoComplete="off" {...register("age", { valueAsNumber: true })} />
               {errors.age && <p className="text-sm text-red-500">{errors.age.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="talentArea">Your Talent Area *</Label>
-              <Input id="talentArea" placeholder="e.g., Web Development, Graphic Design, Music" {...register("talentArea")} />
+              <Input id="talentArea" placeholder="e.g., Web Development, Graphic Design, Music" autoComplete="off" {...register("talentArea")} />
               {errors.talentArea && <p className="text-sm text-red-500">{errors.talentArea.message}</p>}
             </div>
           </>
@@ -228,7 +228,7 @@ export default function YouthSignup() {
             </div>
             <div className="space-y-3">
               <Label htmlFor="bio">About You *</Label>
-              <Textarea id="bio" placeholder="Tell us about yourself, your skills, and your aspirations..." {...register("bio")} className="min-h-[120px]" />
+              <Textarea id="bio" placeholder="Tell us about yourself, your skills, and your aspirations..." autoComplete="off" {...register("bio")} className="min-h-[120px]" />
               <p className="text-xs text-muted-foreground">Minimum 20 characters</p>
               {errors.bio && <p className="text-sm text-red-500">{errors.bio.message}</p>}
             </div>
@@ -278,7 +278,7 @@ export default function YouthSignup() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
             {renderStep()}
             {step < 3 ? (
               <div className="flex justify-between pt-4">

@@ -94,7 +94,7 @@ export default function Login() {
     }
   };
 
-  // ✅ Fixed: now uses Firebase instead of Supabase
+  
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
