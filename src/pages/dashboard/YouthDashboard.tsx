@@ -245,16 +245,16 @@ export function YouthDashboard() {
 
         <TabsContent value="overview" className="space-y-8">
           {/* Contextual Action Bar */}
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" size="sm" onClick={() => navigate('/youth/profile/edit')}>
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/youth/profile/edit')}>
               <User className="h-4 w-4 mr-2" />
               {t('updateProfile')}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/youth/cv-builder')}>
+            <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/youth/cv-builder')}>
               <FileText className="h-4 w-4 mr-2" />
               {t('createCV')}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/youth/portfolio')}>
+            <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/youth/portfolio')}>
               <Plus className="h-4 w-4 mr-2" />
               {t('uploadPortfolio')}
             </Button>
@@ -263,18 +263,18 @@ export function YouthDashboard() {
           {/* User Info Card */}
           {profile && (
             <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
-                    <Avatar className="h-20 w-20 ring-4 ring-blue-100">
+              <CardContent className="p-4 sm:p-6 md:p-8">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <Avatar className="h-16 w-16 sm:h-20 sm:w-20 ring-4 ring-blue-100 flex-shrink-0">
                       <AvatarImage src={profile.profileImageUrl} alt={profile.fullName} />
                       <AvatarFallback className="text-xl bg-blue-100 text-blue-600">
                         {profile.fullName?.charAt(0)?.toUpperCase() || 'Y'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="space-y-2">
-                      <h2 className="text-3xl font-bold text-gray-900">{profile.fullName || t('welcome')}</h2>
-                      <p className="text-lg text-gray-600">{profile.email}</p>
+                    <div className="space-y-2 min-w-0">
+                      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">{profile.fullName || t('welcome')}</h2>
+                      <p className="text-base sm:text-lg text-gray-600 truncate">{profile.email}</p>
                       {profile.city && profile.country && (
                         <div className="flex items-center text-base text-gray-500">
                           <MapPin className="h-5 w-5 mr-2" />
@@ -283,11 +283,11 @@ export function YouthDashboard() {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end space-y-4 text-right">
-                    <div className="space-y-2">
+                  <div className="flex flex-col items-start md:items-end space-y-4 w-full md:w-auto">
+                    <div className="space-y-2 w-full md:w-auto">
                       <div className="text-sm font-medium text-gray-500">{t('profileProgress')}</div>
                       <div className="flex items-center space-x-3">
-                        <Progress value={profileCompletion} className="w-32 h-3" />
+                        <Progress value={profileCompletion} className="w-full sm:w-32 h-3" />
                         <span className="text-lg font-semibold">{profileCompletion}%</span>
                       </div>
                     </div>

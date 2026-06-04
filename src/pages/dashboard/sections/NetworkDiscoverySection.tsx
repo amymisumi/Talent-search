@@ -793,26 +793,26 @@ const NetworkDiscoverySection = () => {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="youths">
-            <Users className="h-4 w-4 mr-2" />
-            Youths ({filteredYouths.length})
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto">
+          <TabsTrigger value="youths" className="text-xs sm:text-sm py-2">
+            <Users className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="truncate">Youths ({filteredYouths.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="recruiters">
-            <Building2 className="h-4 w-4 mr-2" />
-            Recruiters ({filteredRecruiters.length})
+          <TabsTrigger value="recruiters" className="text-xs sm:text-sm py-2">
+            <Building2 className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="truncate">Recruiters ({filteredRecruiters.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="suggestions">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Smart Matches ({smartMatches.length})
+          <TabsTrigger value="suggestions" className="text-xs sm:text-sm py-2">
+            <Sparkles className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="truncate">Matches ({smartMatches.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="requests">
-            <Clock className="h-4 w-4 mr-2" />
-            Requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}
+          <TabsTrigger value="requests" className="text-xs sm:text-sm py-2">
+            <Clock className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="truncate">Requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}</span>
           </TabsTrigger>
-          <TabsTrigger value="connections">
-            <Check className="h-4 w-4 mr-2" />
-            Connections ({acceptedConnections.length})
+          <TabsTrigger value="connections" className="text-xs sm:text-sm py-2 col-span-2 sm:col-span-1">
+            <Check className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="truncate">Connections ({acceptedConnections.length})</span>
           </TabsTrigger>
         </TabsList>
 

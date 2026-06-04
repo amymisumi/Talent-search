@@ -65,7 +65,7 @@ const NotificationDropdown = ({
   }, [onClose]);
 
   return (
-    <div ref={dropdownRef} className="absolute right-0 mt-2 w-80 rounded-xl border bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 z-50">
+    <div ref={dropdownRef} className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-80 rounded-xl border bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 z-50">
       <div className="flex items-center justify-between border-b px-4 py-3 dark:border-slate-800">
         <p className="text-sm font-medium">Notifications</p>
         <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>

@@ -169,13 +169,12 @@ const AdminDashboardNew: React.FC = () => {
           {/* Admin Welcome Card */}
           {currentUser && (
             <Card className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 border-0 shadow-2xl overflow-hidden">
-              <CardContent className="p-8 text-white relative">
+              <CardContent className="p-4 sm:p-6 md:p-8 text-white relative">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24 blur-3xl"></div>
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
-                    <div className="relative">
-                      <Avatar className="h-24 w-24 ring-4 ring-white/30 shadow-xl">
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                  <div className="relative flex-shrink-0">
+                      <Avatar className="h-16 w-16 sm:h-24 sm:w-24 ring-4 ring-white/30 shadow-xl">
                         <AvatarImage src={userData?.photoURL} alt={currentUser.displayName || 'Admin'} />
                         <AvatarFallback className="text-2xl bg-white/20 text-white border-2 border-white/30">
                           <Shield className="h-12 w-12" />
@@ -185,12 +184,12 @@ const AdminDashboardNew: React.FC = () => {
                         <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse"></div>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <h2 className="text-4xl font-bold text-white">
+                    <div className="space-y-2 min-w-0">
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
                         Welcome back, {currentUser.displayName?.split(' ')[0] || 'Admin'}
                       </h2>
-                      <p className="text-lg text-blue-100">{currentUser.email}</p>
-                      <div className="flex items-center gap-3 mt-4">
+                      <p className="text-base sm:text-lg text-blue-100 truncate">{currentUser.email}</p>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4">
                         <Badge className="bg-white/20 text-white border border-white/30 px-4 py-1.5">
                           <Shield className="h-4 w-4 mr-2" />
                           Super Administrator
@@ -200,7 +199,6 @@ const AdminDashboardNew: React.FC = () => {
                         </Badge>
                       </div>
                     </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>

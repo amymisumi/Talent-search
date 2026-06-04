@@ -403,7 +403,7 @@ export const UserManagementTab: React.FC = () => {
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-slate-300">Name</Label>
                   <p className="font-medium text-white">{selectedUser.fullName}</p>
@@ -462,7 +462,7 @@ export const UserManagementTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <Label>Portfolio Projects</Label>
                   <p className="text-2xl font-bold">{selectedUser.portfolioCount || 0}</p>

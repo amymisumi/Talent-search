@@ -1,5 +1,5 @@
 import { Outlet, useLocation, Navigate, useNavigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Bell, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -23,6 +23,8 @@ export function RecruiterLayout() {
   const { currentUser, userData, loading, signOut } = useAuth();
   useTheme(); // Theme is used for the context, but we don't need the values here
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
 
   // Check if user is authenticated
   // Note: Role checking is handled by ProtectedRoute in App.tsx
@@ -75,7 +77,10 @@ export function RecruiterLayout() {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <RecruiterSidebar />
+      <RecruiterSidebar
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
       
       <div className="flex-1 flex flex-col lg:pl-64">
         {/* Top Navigation */}

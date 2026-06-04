@@ -156,7 +156,7 @@ export const AnalyticsTab: React.FC = () => {
             {/* Platform Usage */}
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">Platform Usage</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Card className="border-0 bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
                   <CardContent className="pt-6">
                     <div className="text-3xl font-bold text-white">{analytics.platformUsage.activeUsers.daily}</div>

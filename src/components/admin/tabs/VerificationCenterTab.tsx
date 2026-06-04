@@ -235,7 +235,7 @@ export const VerificationCenterTab: React.FC = () => {
           </DialogHeader>
           {selectedCert && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-slate-300">User</Label>
                   <p className="font-medium text-white">{selectedCert.userName}</p>

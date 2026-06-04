@@ -411,20 +411,20 @@ export const NetworkingCenter: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
-        <TabsList>
-          <TabsTrigger value="browse">Browse</TabsTrigger>
-          <TabsTrigger value="connections">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+          <TabsTrigger value="browse" className="text-xs sm:text-sm">Browse</TabsTrigger>
+          <TabsTrigger value="connections" className="text-xs sm:text-sm">
             Connections ({connectedUsers.length})
           </TabsTrigger>
-          <TabsTrigger value="requests">
+          <TabsTrigger value="requests" className="text-xs sm:text-sm">
             Requests
             {pendingRequests.length > 0 && (
-              <Badge variant="destructive" className="ml-2">
+              <Badge variant="destructive" className="ml-1 sm:ml-2">
                 {pendingRequests.length}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs sm:text-sm">Analytics</TabsTrigger>
         </TabsList>
 
         {/* Browse Tab */}

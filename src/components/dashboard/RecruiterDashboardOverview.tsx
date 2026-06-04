@@ -152,24 +152,24 @@ export const RecruiterDashboardOverview: React.FC<RecruiterDashboardOverviewProp
       {/* Company Profile Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
+              <Avatar className="h-14 w-14 sm:h-16 sm:w-16 flex-shrink-0">
                 <AvatarImage src={profile?.companyLogoUrl} alt={profile?.companyName || 'Company'} />
                 <AvatarFallback>
                   <Building2 className="h-8 w-8" />
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-2xl">{profile?.companyName || 'Your Company'}</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl">{profile?.companyName || 'Your Company'}</CardTitle>
                 <CardDescription className="flex items-center gap-2 mt-1">
                   <MapPin className="h-4 w-4" />
                   {profile?.city && profile?.country ? `${profile.city}, ${profile.country}` : 'Location not set'}
                 </CardDescription>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleNavigate('/recruiter/profile')}>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => handleNavigate('/recruiter/profile')}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
               </Button>
@@ -516,12 +516,12 @@ export const RecruiterDashboardOverview: React.FC<RecruiterDashboardOverviewProp
       {/* Analytics Summary */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle>Analytics Summary</CardTitle>
               <CardDescription>Applications and hiring trends</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={() => handleNavigate('/recruiter/analytics')}>
+            <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => handleNavigate('/recruiter/analytics')}>
               View Full Analytics
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>

@@ -43,8 +43,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t('dashboard')}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{t('dashboard')}</h1>
         <Badge variant={profileCompletion >= 80 ? 'default' : 'secondary'}>
           {t('profile')} {profileCompletion}% {t('complete')}
         </Badge>
@@ -52,9 +52,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
       {/* Profile Summary */}
       {profile && (
-        <Card className="p-6">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-20 w-20">
+        <Card className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
               <AvatarImage 
                 src={isRecruiter ? profile.companyLogoUrl : profile.profileImageUrl} 
                 alt={isRecruiter ? profile.companyName || profile.fullName : profile.fullName} 

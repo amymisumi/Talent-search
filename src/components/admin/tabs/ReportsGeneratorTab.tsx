@@ -336,7 +336,7 @@ export const ReportsGeneratorTab: React.FC = () => {
             </Select>
 
             {dateRange === 'custom' && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div>
                   <Label className={isDark ? 'text-slate-300' : 'text-gray-700'}>Start Date</Label>
                   <Input
@@ -362,7 +362,7 @@ export const ReportsGeneratorTab: React.FC = () => {
           {/* Filters */}
           <div>
             <Label className={isDark ? 'text-slate-300' : 'text-gray-700'}>Filters (Optional)</Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               {(reportType === 'youth' || reportType === 'recruiter') && (
                 <div>
                   <Label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Status</Label>
