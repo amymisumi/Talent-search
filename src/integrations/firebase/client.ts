@@ -5,7 +5,7 @@ import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 // Firebase configuration from Firebase Console
 const firebaseConfig = {
-  apiKey: "AIzaSyCiwbCtj24dnkkPL_GO_EzIOYxrxbQgoxA",
+  apiKey: "AIzaSyBLUFmkFJgxDuiXcDhkvEO8VqwABIBeznA",
   authDomain: "africatalent-ec2e9.firebaseapp.com",
   databaseURL: "https://africatalent-ec2e9-default-rtdb.firebaseio.com",
   projectId: "africatalent-ec2e9",
