@@ -42,12 +42,21 @@ const LoadingSpinner = () => (
   </div>
 );
 
+const getCachedAuthRole = (): string | null => {
+  try {
+    return sessionStorage.getItem('authRole');
+  } catch {
+    return null;
+  }
+};
+
 // Protected route wrapper
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'youth' | 'recruiter' | 'admin' }) => {
   const { currentUser, userData, loading } = useAuth();
   const location = useLocation();
+  const role = userData?.role || getCachedAuthRole();
 
-  if (loading) {
+  if (loading && !currentUser) {
     return <LoadingSpinner />;
   }
 
@@ -55,20 +64,18 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Wait for userData to be loaded before checking role
-  // This prevents redirects when userData is temporarily null
-  if (!userData || !userData.role) {
+  if (!role) {
     return <LoadingSpinner />;
   }
 
   // Check role if required
-  if (requiredRole && userData.role !== requiredRole) {
+  if (requiredRole && role !== requiredRole) {
     // Redirect based on actual role
-    if (userData.role === 'recruiter') {
+    if (role === 'recruiter') {
       return <Navigate to="/recruiter-dashboard" replace />;
-    } else if (userData.role === 'youth') {
+    } else if (role === 'youth') {
       return <Navigate to="/youth-dashboard" replace />;
-    } else if (userData.role === 'admin') {
+    } else if (role === 'admin') {
       return <Navigate to="/admin-dashboard" replace />;
     }
     // If no role, redirect to login

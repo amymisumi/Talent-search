@@ -61,46 +61,38 @@ export function YouthDashboard() {
   // Analytics data
   const [analytics, setAnalytics] = useState<any>(null);
 
-  // Load user profile
+  // Load user profile (non-blocking — show dashboard shell immediately)
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!currentUser) {
-        setLoading(false);
-        return;
-      }
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const userProfile = await getProfile(currentUser.uid);
-        if (userProfile) {
-          setProfile(userProfile);
-        } else {
-          // Create a basic profile if none exists
-          setProfile({
-            id: currentUser.uid,
-            userId: currentUser.uid,
-            fullName: currentUser.displayName || 'Youth User',
-            email: currentUser.email || '',
-            createdAt: new Date(),
-            updatedAt: new Date()
-          });
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        setProfile({
-          id: currentUser.uid,
-          userId: currentUser.uid,
-          fullName: currentUser.displayName || 'Youth User',
-          email: currentUser.email || '',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-      } finally {
-        setLoading(false);
-      }
+    const fallbackProfile: UserProfile = {
+      id: currentUser.uid,
+      userId: currentUser.uid,
+      fullName: currentUser.displayName || userData?.displayName || 'Youth User',
+      email: currentUser.email || userData?.email || '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    loadProfile();
-  }, [currentUser]);
+    setProfile(fallbackProfile);
+    setLoading(false);
+
+    let cancelled = false;
+    getProfile(currentUser.uid)
+      .then((userProfile) => {
+        if (!cancelled && userProfile) {
+          setProfile(userProfile);
+        }
+      })
+      .catch((error) => {
+        console.error('Error loading profile:', error);
+      });
+
+    return () => { cancelled = true; };
+  }, [currentUser, userData?.displayName, userData?.email]);
 
   // Load analytics data from Firebase
   useEffect(() => {

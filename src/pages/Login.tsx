@@ -10,8 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { auth } from "@/integrations/firebase/client";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { getUserRole, setUserRole } from "@/integrations/firebase/services";
+import type { UserRole } from "@/integrations/firebase/types";
+import { AUTH_ROLE_CACHE_KEY } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Globe, ArrowRight, Home } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -24,12 +26,17 @@ type LoginForm = {
   rememberMe?: boolean;
 };
 
-const redirectToRole = (role: string, navigate: ReturnType<typeof useNavigate>) => {
+const cacheRoleAndNavigate = (role: UserRole, navigate: ReturnType<typeof useNavigate>) => {
+  try {
+    sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, role);
+  } catch {
+    // ignore
+  }
   switch (role) {
-    case 'youth':     return navigate('/youth-dashboard');
-    case 'recruiter': return navigate('/recruiter-dashboard');
-    case 'admin':     return navigate('/admin-dashboard');
-    default:          return navigate('/');
+    case 'youth':     navigate('/youth-dashboard'); break;
+    case 'recruiter': navigate('/recruiter-dashboard'); break;
+    case 'admin':     navigate('/admin-dashboard'); break;
+    default:          navigate('/');
   }
 };
 
@@ -89,12 +96,12 @@ export default function Login() {
         await setUserRole(user.uid, data.role);
       }
 
+      cacheRoleAndNavigate(data.role, navigate);
+
       toast({
         title: t('loginSuccessful'),
         description: t('redirectingToDashboard').replace('{role}', roleLabel(data.role)),
       });
-
-      redirectToRole(data.role, navigate);
     } catch (error: any) {
       let errorMessage = t('failedSignInRetry');
       if (error.code === 'auth/user-not-found')    errorMessage = t('noAccountFound');
@@ -120,25 +127,18 @@ export default function Login() {
       const existingRole = await getUserRole(user.uid);
 
       if (existingRole) {
+        cacheRoleAndNavigate(existingRole, navigate);
         toast({
           title: t('welcomeBackGoogle'),
           description: t('redirectingToDashboard').replace('{role}', roleLabel(existingRole)),
         });
-        redirectToRole(existingRole, navigate);
       } else {
         await setUserRole(user.uid, selectedRole);
+        cacheRoleAndNavigate(selectedRole, navigate);
         toast({
           title: t('accountCreatedGoogle'),
           description: t('accountCreatedGoogleDesc'),
         });
-
-        await new Promise<void>((resolve) => {
-          const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            if (firebaseUser) { unsubscribe(); resolve(); }
-          });
-        });
-
-        redirectToRole(selectedRole, navigate);
       }
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
