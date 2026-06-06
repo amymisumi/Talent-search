@@ -17,11 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, ArrowLeft } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
 const youthSignupSchema = z.object({
@@ -48,24 +44,11 @@ const STEP2_FIELDS: (keyof YouthSignupForm)[] = ["country", "city", "age", "tale
 
 const getSignupErrorMessage = (error: { code?: string; message?: string }) => {
   switch (error.code) {
-    case "auth/email-already-in-use":
-      return "This email is already registered. Please log in instead.";
-    case "auth/weak-password":
-      return "Password is too weak. Use at least 8 characters.";
-    case "auth/invalid-email":
-      return "Please enter a valid email address.";
-    default:
-      return error.message || "An error occurred during sign up";
+    case "auth/email-already-in-use": return "This email is already registered. Please log in instead.";
+    case "auth/weak-password": return "Password is too weak. Use at least 8 characters.";
+    case "auth/invalid-email": return "Please enter a valid email address.";
+    default: return error.message || "An error occurred during sign up";
   }
-};
-
-const cacheRoleAndNavigate = (role: string, navigate: ReturnType<typeof useNavigate>, path: string) => {
-  try {
-    sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, role);
-  } catch {
-    // ignore
-  }
-  navigate(path);
 };
 
 export default function YouthSignup() {
@@ -76,19 +59,10 @@ export default function YouthSignup() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-    trigger,
-  } = useForm<YouthSignupForm>({
+  const { register, handleSubmit, control, formState: { errors }, trigger } = useForm<YouthSignupForm>({
     resolver: zodResolver(youthSignupSchema),
     shouldUnregister: false,
-    defaultValues: {
-      termsAccepted: false,
-      preferredCareerField: "",
-    },
+    defaultValues: { termsAccepted: false, preferredCareerField: "" },
   });
 
   const progressValue = (step / 3) * 100;
@@ -97,7 +71,7 @@ export default function YouthSignup() {
     const firstError = Object.values(fieldErrors)[0];
     toast({
       title: "Please complete all required fields",
-      description: firstError?.message?.toString() || "Check the form for missing or invalid information.",
+      description: firstError?.message?.toString() || "Check the form for errors.",
       variant: "destructive",
     });
   };
@@ -110,38 +84,36 @@ export default function YouthSignup() {
       if (!user) throw new Error("User creation failed");
       const userId = user.uid;
 
+      // ✅ CRITICAL FIX: Cache the role IMMEDIATELY after user creation.
+      // AuthContext's onAuthStateChanged fires right now — if the cache
+      // isn't set yet, it fetches Firestore (where role doesn't exist yet)
+      // and sets role = 'user', causing ProtectedRoute to redirect away.
+      try { sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, "youth"); } catch { /* ignore */ }
+
+      // Upload files (non-blocking failures)
       let profileImageUrl: string | undefined;
       if (profileImage) {
         try {
-          const fileExt = profileImage.name.split(".").pop();
-          profileImageUrl = await uploadFile(profileImage, `profile-images/${userId}/profile.${fileExt}`);
-        } catch (uploadError) {
-          console.warn("Profile image upload failed, continuing:", uploadError);
-        }
+          const ext = profileImage.name.split(".").pop();
+          profileImageUrl = await uploadFile(profileImage, `profile-images/${userId}/profile.${ext}`);
+        } catch { console.warn("Profile image upload failed"); }
       }
 
       let cvUrl: string | undefined;
       if (cvFile) {
         try {
-          const fileExt = cvFile.name.split(".").pop();
-          cvUrl = await uploadFile(cvFile, `cvs/${userId}/cv.${fileExt}`);
-        } catch (uploadError) {
-          console.warn("CV upload failed, continuing:", uploadError);
-        }
+          const ext = cvFile.name.split(".").pop();
+          cvUrl = await uploadFile(cvFile, `cvs/${userId}/cv.${ext}`);
+        } catch { console.warn("CV upload failed"); }
       }
 
+      // Write profile and role to Firestore
       await createProfile({
-        userId,
-        email: data.email,
-        fullName: data.fullName,
-        country: data.country,
-        city: data.city,
-        age: data.age,
-        talentArea: data.talentArea,
-        bio: data.bio,
+        userId, email: data.email, fullName: data.fullName,
+        country: data.country, city: data.city, age: data.age,
+        talentArea: data.talentArea, bio: data.bio,
         preferredCareerField: data.preferredCareerField,
-        profileImageUrl,
-        cvUrl,
+        profileImageUrl, cvUrl,
       });
       await setUserRole(userId, "youth");
 
@@ -150,8 +122,12 @@ export default function YouthSignup() {
         description: "Welcome to Talent Search Africa!",
       });
 
-      cacheRoleAndNavigate("youth", navigate, "/youth-dashboard");
+      // Navigate — AuthContext already has the cached role so ProtectedRoute
+      // will immediately recognise this user as 'youth' and render the dashboard
+      navigate("/youth-dashboard");
     } catch (error: unknown) {
+      // If signup failed, clear the cache so it doesn't affect future attempts
+      try { sessionStorage.removeItem(AUTH_ROLE_CACHE_KEY); } catch { /* ignore */ }
       console.error("Signup error:", error);
       toast({
         title: "Sign up failed",
@@ -169,17 +145,11 @@ export default function YouthSignup() {
     if (valid) {
       setStep((s) => Math.min(s + 1, 3));
     } else {
-      toast({
-        title: "Please complete this step",
-        description: "Fill in all required fields before continuing.",
-        variant: "destructive",
-      });
+      toast({ title: "Please complete this step", description: "Fill in all required fields before continuing.", variant: "destructive" });
     }
   };
 
-  const prevStep = () => {
-    if (step > 1) setStep(step - 1);
-  };
+  const prevStep = () => { if (step > 1) setStep(step - 1); };
 
   const renderStep = () => {
     switch (step) {
@@ -193,7 +163,7 @@ export default function YouthSignup() {
             </div>
             <div className="space-y-3">
               <Label htmlFor="email">Email Address *</Label>
-              <Input id="email" type="email" placeholder="your.email@example.com" autoComplete="new-email" {...register("email")} />
+              <Input id="email" type="email" placeholder="your.email@example.com" autoComplete="off" {...register("email")} />
               {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
             <div className="space-y-3">
@@ -245,15 +215,13 @@ export default function YouthSignup() {
         return (
           <>
             <div className="space-y-3">
-              <Label htmlFor="preferredCareerField">Preferred Career Field *</Label>
+              <Label>Preferred Career Field *</Label>
               <Controller
                 name="preferredCareerField"
                 control={control}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select career field" />
-                    </SelectTrigger>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Select career field" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="technology">Technology</SelectItem>
                       <SelectItem value="design">Design</SelectItem>
@@ -286,11 +254,7 @@ export default function YouthSignup() {
                 name="termsAccepted"
                 control={control}
                 render={({ field }) => (
-                  <Checkbox
-                    id="terms"
-                    checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(checked === true)}
-                  />
+                  <Checkbox id="terms" checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
                 )}
               />
               <div className="grid gap-1.5 leading-none">
@@ -303,8 +267,7 @@ export default function YouthSignup() {
             </div>
           </>
         );
-      default:
-        return null;
+      default: return null;
     }
   };
 

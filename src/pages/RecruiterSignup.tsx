@@ -16,11 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, ArrowLeft } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
 const recruiterSignupSchema = z.object({
@@ -43,24 +39,11 @@ type RecruiterSignupForm = z.infer<typeof recruiterSignupSchema>;
 
 const getSignupErrorMessage = (error: { code?: string; message?: string }) => {
   switch (error.code) {
-    case "auth/email-already-in-use":
-      return "This email is already registered. Please log in instead.";
-    case "auth/weak-password":
-      return "Password is too weak. Use at least 8 characters.";
-    case "auth/invalid-email":
-      return "Please enter a valid email address.";
-    default:
-      return error.message || "An error occurred during sign up";
+    case "auth/email-already-in-use": return "This email is already registered. Please log in instead.";
+    case "auth/weak-password": return "Password is too weak. Use at least 8 characters.";
+    case "auth/invalid-email": return "Please enter a valid email address.";
+    default: return error.message || "An error occurred during sign up";
   }
-};
-
-const cacheRoleAndNavigate = (role: string, navigate: ReturnType<typeof useNavigate>, path: string) => {
-  try {
-    sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, role);
-  } catch {
-    // ignore
-  }
-  navigate(path);
 };
 
 export default function RecruiterSignup() {
@@ -69,25 +52,16 @@ export default function RecruiterSignup() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<RecruiterSignupForm>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<RecruiterSignupForm>({
     resolver: zodResolver(recruiterSignupSchema),
-    defaultValues: {
-      termsAccepted: false,
-      industryType: "",
-      companyWebsite: "",
-    },
+    defaultValues: { termsAccepted: false, industryType: "", companyWebsite: "" },
   });
 
   const onInvalid = (fieldErrors: FieldErrors<RecruiterSignupForm>) => {
     const firstError = Object.values(fieldErrors)[0];
     toast({
       title: "Please complete all required fields",
-      description: firstError?.message?.toString() || "Check the form for missing or invalid information.",
+      description: firstError?.message?.toString() || "Check the form for errors.",
       variant: "destructive",
     });
   };
@@ -100,25 +74,25 @@ export default function RecruiterSignup() {
       if (!user) throw new Error("User creation failed");
       const userId = user.uid;
 
+      // ✅ CRITICAL FIX: Cache the role IMMEDIATELY after user creation.
+      // AuthContext's onAuthStateChanged fires right now — if the cache
+      // isn't set yet, it fetches Firestore (where role doesn't exist yet)
+      // and sets role = 'user', causing ProtectedRoute to redirect away.
+      try { sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, "recruiter"); } catch { /* ignore */ }
+
       let companyLogoUrl: string | undefined;
       if (companyLogo) {
         try {
-          const fileExt = companyLogo.name.split(".").pop();
-          companyLogoUrl = await uploadFile(companyLogo, `company-logos/${userId}/logo.${fileExt}`);
-        } catch (uploadError) {
-          console.warn("Company logo upload failed, continuing:", uploadError);
-        }
+          const ext = companyLogo.name.split(".").pop();
+          companyLogoUrl = await uploadFile(companyLogo, `company-logos/${userId}/logo.${ext}`);
+        } catch { console.warn("Logo upload failed"); }
       }
 
       await createProfile({
-        userId,
-        email: data.email,
-        fullName: data.recruiterName,
-        country: data.country,
-        companyName: data.companyName,
+        userId, email: data.email, fullName: data.recruiterName,
+        country: data.country, companyName: data.companyName,
         companyWebsite: data.companyWebsite || undefined,
-        companyLogoUrl,
-        industryType: data.industryType,
+        companyLogoUrl, industryType: data.industryType,
         companyDescription: data.companyDescription,
       });
       await setUserRole(userId, "recruiter");
@@ -128,8 +102,12 @@ export default function RecruiterSignup() {
         description: "Welcome to Talent Search Africa. Redirecting to your dashboard...",
       });
 
-      cacheRoleAndNavigate("recruiter", navigate, "/recruiter-dashboard");
+      // Navigate — AuthContext already has the cached role so ProtectedRoute
+      // will immediately recognise this user as 'recruiter' and render the dashboard
+      navigate("/recruiter-dashboard");
     } catch (error: unknown) {
+      // If signup failed, clear the cache so it doesn't affect future attempts
+      try { sessionStorage.removeItem(AUTH_ROLE_CACHE_KEY); } catch { /* ignore */ }
       console.error("Signup error:", error);
       toast({
         title: "Sign up failed",
@@ -165,13 +143,13 @@ export default function RecruiterSignup() {
               {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
             </div>
             <div className="space-y-3">
-              <Label htmlFor="recruiterName">Recruiter&apos;s Full Name *</Label>
+              <Label htmlFor="recruiterName">Recruiter's Full Name *</Label>
               <Input id="recruiterName" placeholder="Enter your full name" autoComplete="off" {...register("recruiterName")} />
               {errors.recruiterName && <p className="text-sm text-red-500">{errors.recruiterName.message}</p>}
             </div>
             <div className="space-y-3">
               <Label htmlFor="email">Work Email *</Label>
-              <Input id="email" type="email" autoComplete="new-email" {...register("email")} placeholder="your.email@company.com" />
+              <Input id="email" type="email" autoComplete="off" {...register("email")} placeholder="your.email@company.com" />
               {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
             <div className="space-y-3">
@@ -190,15 +168,13 @@ export default function RecruiterSignup() {
               {errors.country && <p className="text-sm text-red-500">{errors.country.message}</p>}
             </div>
             <div className="space-y-3">
-              <Label htmlFor="industryType">Industry Type *</Label>
+              <Label>Industry Type *</Label>
               <Controller
                 name="industryType"
                 control={control}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select industry type" />
-                    </SelectTrigger>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Select industry type" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="technology">Technology</SelectItem>
                       <SelectItem value="finance">Finance</SelectItem>
@@ -234,11 +210,7 @@ export default function RecruiterSignup() {
                 name="termsAccepted"
                 control={control}
                 render={({ field }) => (
-                  <Checkbox
-                    id="terms"
-                    checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(checked === true)}
-                  />
+                  <Checkbox id="terms" checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
                 )}
               />
               <div className="grid gap-1.5 leading-none">
