@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { auth } from "@/integrations/firebase/client";
-import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { createProfile, setUserRole, uploadFile } from "@/integrations/firebase/services";
+import { AUTH_ROLE_CACHE_KEY } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,13 +33,35 @@ const recruiterSignupSchema = z.object({
   industryType: z.string().min(2, "Please select an industry type"),
   companyWebsite: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   companyDescription: z.string().min(20, "Description must be at least 20 characters").max(500),
-  termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
+  termsAccepted: z.boolean().refine((val) => val === true, "You must accept the terms and conditions"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
 
 type RecruiterSignupForm = z.infer<typeof recruiterSignupSchema>;
+
+const getSignupErrorMessage = (error: { code?: string; message?: string }) => {
+  switch (error.code) {
+    case "auth/email-already-in-use":
+      return "This email is already registered. Please log in instead.";
+    case "auth/weak-password":
+      return "Password is too weak. Use at least 8 characters.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    default:
+      return error.message || "An error occurred during sign up";
+  }
+};
+
+const cacheRoleAndNavigate = (role: string, navigate: ReturnType<typeof useNavigate>, path: string) => {
+  try {
+    sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, role);
+  } catch {
+    // ignore
+  }
+  navigate(path);
+};
 
 export default function RecruiterSignup() {
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
@@ -49,29 +72,44 @@ export default function RecruiterSignup() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
-    setValue,
   } = useForm<RecruiterSignupForm>({
     resolver: zodResolver(recruiterSignupSchema),
+    defaultValues: {
+      termsAccepted: false,
+      industryType: "",
+      companyWebsite: "",
+    },
   });
+
+  const onInvalid = (fieldErrors: FieldErrors<RecruiterSignupForm>) => {
+    const firstError = Object.values(fieldErrors)[0];
+    toast({
+      title: "Please complete all required fields",
+      description: firstError?.message?.toString() || "Check the form for missing or invalid information.",
+      variant: "destructive",
+    });
+  };
 
   const onSubmit = async (data: RecruiterSignupForm) => {
     setIsLoading(true);
     try {
-      // Create Firebase auth user
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
       if (!user) throw new Error("User creation failed");
       const userId = user.uid;
 
-      // Upload company logo if provided
-      let companyLogoUrl = null;
+      let companyLogoUrl: string | undefined;
       if (companyLogo) {
-        const fileExt = companyLogo.name.split('.').pop();
-        companyLogoUrl = await uploadFile(companyLogo, `company-logos/${userId}/logo.${fileExt}`);
+        try {
+          const fileExt = companyLogo.name.split(".").pop();
+          companyLogoUrl = await uploadFile(companyLogo, `company-logos/${userId}/logo.${fileExt}`);
+        } catch (uploadError) {
+          console.warn("Company logo upload failed, continuing:", uploadError);
+        }
       }
 
-      // Save profile and role to Firestore
       await createProfile({
         userId,
         email: data.email,
@@ -79,34 +117,23 @@ export default function RecruiterSignup() {
         country: data.country,
         companyName: data.companyName,
         companyWebsite: data.companyWebsite || undefined,
-        companyLogoUrl: companyLogoUrl || undefined,
+        companyLogoUrl,
         industryType: data.industryType,
         companyDescription: data.companyDescription,
       });
-      await setUserRole(userId, 'recruiter');
+      await setUserRole(userId, "recruiter");
 
       toast({
         title: "Account created successfully!",
         description: "Welcome to Talent Search Africa. Redirecting to your dashboard...",
       });
 
-      // ✅ Wait for Firebase to confirm the auth state is fully ready,
-      // then navigate — this prevents the "no user" error on the dashboard
-      await new Promise<void>((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-          if (firebaseUser) {
-            unsubscribe();
-            resolve();
-          }
-        });
-      });
-
-      navigate('/recruiter-dashboard');
-    } catch (error: any) {
+      cacheRoleAndNavigate("recruiter", navigate, "/recruiter-dashboard");
+    } catch (error: unknown) {
       console.error("Signup error:", error);
       toast({
         title: "Sign up failed",
-        description: error.message || "An error occurred during sign up",
+        description: getSignupErrorMessage(error as { code?: string; message?: string }),
         variant: "destructive",
       });
     } finally {
@@ -131,14 +158,14 @@ export default function RecruiterSignup() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
+          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6" autoComplete="off">
             <div className="space-y-3">
               <Label htmlFor="companyName">Company Name *</Label>
               <Input id="companyName" placeholder="Enter company name" autoComplete="off" {...register("companyName")} />
               {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
             </div>
             <div className="space-y-3">
-              <Label htmlFor="recruiterName">Recruiter's Full Name *</Label>
+              <Label htmlFor="recruiterName">Recruiter&apos;s Full Name *</Label>
               <Input id="recruiterName" placeholder="Enter your full name" autoComplete="off" {...register("recruiterName")} />
               {errors.recruiterName && <p className="text-sm text-red-500">{errors.recruiterName.message}</p>}
             </div>
@@ -164,18 +191,24 @@ export default function RecruiterSignup() {
             </div>
             <div className="space-y-3">
               <Label htmlFor="industryType">Industry Type *</Label>
-              <Select onValueChange={(value) => setValue("industryType", value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select industry type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="finance">Finance</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                name="industryType"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select industry type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technology">Technology</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="healthcare">Healthcare</SelectItem>
+                      <SelectItem value="education">Education</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {errors.industryType && <p className="text-sm text-red-500">{errors.industryType.message}</p>}
             </div>
             <div className="space-y-3">
@@ -197,10 +230,20 @@ export default function RecruiterSignup() {
               </label>
             </div>
             <div className="flex items-start space-x-2">
-              <Checkbox id="terms" onCheckedChange={(checked) => setValue("termsAccepted", checked === true)} />
+              <Controller
+                name="termsAccepted"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="terms"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                )}
+              />
               <div className="grid gap-1.5 leading-none">
                 <label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  I agree to the <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and{' '}
+                  I agree to the <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and{" "}
                   <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
                 </label>
                 {errors.termsAccepted && <p className="text-sm text-red-500">{errors.termsAccepted.message}</p>}
@@ -210,7 +253,7 @@ export default function RecruiterSignup() {
               {isLoading ? "Creating account..." : "Create Account"}
             </Button>
             <div className="text-center text-sm">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link to="/login" className="text-primary hover:underline">Sign in</Link>
             </div>
           </form>

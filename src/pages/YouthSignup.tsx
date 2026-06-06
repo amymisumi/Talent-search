@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { auth } from "@/integrations/firebase/client";
-import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { createProfile, setUserRole, uploadFile } from "@/integrations/firebase/services";
-import { useAuth } from "@/contexts/AuthContext";
+import { AUTH_ROLE_CACHE_KEY } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,17 +31,42 @@ const youthSignupSchema = z.object({
   confirmPassword: z.string(),
   country: z.string().min(2, "Please enter your country"),
   city: z.string().min(2, "Please enter your city"),
-  age: z.number().min(16, "Must be at least 16 years old").max(100),
+  age: z.coerce.number({ invalid_type_error: "Please enter your age" }).min(16, "Must be at least 16 years old").max(100),
   talentArea: z.string().min(2, "Please specify your talent area"),
   bio: z.string().min(20, "Bio must be at least 20 characters").max(500),
   preferredCareerField: z.string().min(2, "Please select a career field"),
-  termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
+  termsAccepted: z.boolean().refine((val) => val === true, "You must accept the terms and conditions"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
 
 type YouthSignupForm = z.infer<typeof youthSignupSchema>;
+
+const STEP1_FIELDS: (keyof YouthSignupForm)[] = ["fullName", "email", "password", "confirmPassword"];
+const STEP2_FIELDS: (keyof YouthSignupForm)[] = ["country", "city", "age", "talentArea"];
+
+const getSignupErrorMessage = (error: { code?: string; message?: string }) => {
+  switch (error.code) {
+    case "auth/email-already-in-use":
+      return "This email is already registered. Please log in instead.";
+    case "auth/weak-password":
+      return "Password is too weak. Use at least 8 characters.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    default:
+      return error.message || "An error occurred during sign up";
+  }
+};
+
+const cacheRoleAndNavigate = (role: string, navigate: ReturnType<typeof useNavigate>, path: string) => {
+  try {
+    sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, role);
+  } catch {
+    // ignore
+  }
+  navigate(path);
+};
 
 export default function YouthSignup() {
   const [step, setStep] = useState(1);
@@ -50,55 +75,61 @@ export default function YouthSignup() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentUser, loading: authLoading } = useAuth();
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
-    setValue,
-    watch,
+    trigger,
   } = useForm<YouthSignupForm>({
     resolver: zodResolver(youthSignupSchema),
+    shouldUnregister: false,
     defaultValues: {
       termsAccepted: false,
+      preferredCareerField: "",
     },
   });
 
   const progressValue = (step / 3) * 100;
 
+  const onInvalid = (fieldErrors: FieldErrors<YouthSignupForm>) => {
+    const firstError = Object.values(fieldErrors)[0];
+    toast({
+      title: "Please complete all required fields",
+      description: firstError?.message?.toString() || "Check the form for missing or invalid information.",
+      variant: "destructive",
+    });
+  };
+
   const onSubmit = async (data: YouthSignupForm) => {
     setIsLoading(true);
     try {
-      // Create Firebase auth user
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
       if (!user) throw new Error("User creation failed");
       const userId = user.uid;
 
-      // Upload profile image if provided
-      let profileImageUrl = null;
+      let profileImageUrl: string | undefined;
       if (profileImage) {
         try {
-          const fileExt = profileImage.name.split('.').pop();
+          const fileExt = profileImage.name.split(".").pop();
           profileImageUrl = await uploadFile(profileImage, `profile-images/${userId}/profile.${fileExt}`);
         } catch (uploadError) {
           console.warn("Profile image upload failed, continuing:", uploadError);
         }
       }
 
-      // Upload CV if provided
-      let cvUrl = null;
+      let cvUrl: string | undefined;
       if (cvFile) {
         try {
-          const fileExt = cvFile.name.split('.').pop();
+          const fileExt = cvFile.name.split(".").pop();
           cvUrl = await uploadFile(cvFile, `cvs/${userId}/cv.${fileExt}`);
         } catch (uploadError) {
           console.warn("CV upload failed, continuing:", uploadError);
         }
       }
 
-      // Save profile and role to Firestore
       await createProfile({
         userId,
         email: data.email,
@@ -109,33 +140,22 @@ export default function YouthSignup() {
         talentArea: data.talentArea,
         bio: data.bio,
         preferredCareerField: data.preferredCareerField,
-        profileImageUrl: profileImageUrl || undefined,
-        cvUrl: cvUrl || undefined,
+        profileImageUrl,
+        cvUrl,
       });
-      await setUserRole(userId, 'youth');
+      await setUserRole(userId, "youth");
 
       toast({
         title: "Account created successfully!",
         description: "Welcome to Talent Search Africa!",
       });
 
-      // ✅ Wait for Firebase to confirm the auth state is fully ready,
-      // then navigate — this prevents the "no user" error on the dashboard
-      await new Promise<void>((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-          if (firebaseUser) {
-            unsubscribe();
-            resolve();
-          }
-        });
-      });
-
-      navigate('/youth-dashboard');
-    } catch (error: any) {
+      cacheRoleAndNavigate("youth", navigate, "/youth-dashboard");
+    } catch (error: unknown) {
       console.error("Signup error:", error);
       toast({
         title: "Sign up failed",
-        description: error.message || "An error occurred during sign up",
+        description: getSignupErrorMessage(error as { code?: string; message?: string }),
         variant: "destructive",
       });
     } finally {
@@ -143,8 +163,23 @@ export default function YouthSignup() {
     }
   };
 
-  const nextStep = () => { if (step < 3) setStep(step + 1); };
-  const prevStep = () => { if (step > 1) setStep(step - 1); };
+  const nextStep = async () => {
+    const fields = step === 1 ? STEP1_FIELDS : STEP2_FIELDS;
+    const valid = await trigger(fields);
+    if (valid) {
+      setStep((s) => Math.min(s + 1, 3));
+    } else {
+      toast({
+        title: "Please complete this step",
+        description: "Fill in all required fields before continuing.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const prevStep = () => {
+    if (step > 1) setStep(step - 1);
+  };
 
   const renderStep = () => {
     switch (step) {
@@ -196,7 +231,7 @@ export default function YouthSignup() {
             </div>
             <div className="space-y-3">
               <Label htmlFor="age">Age *</Label>
-              <Input id="age" type="number" min="16" max="100" placeholder="Enter your age" autoComplete="off" {...register("age", { valueAsNumber: true })} />
+              <Input id="age" type="number" min="16" max="100" placeholder="Enter your age" autoComplete="off" {...register("age")} />
               {errors.age && <p className="text-sm text-red-500">{errors.age.message}</p>}
             </div>
             <div className="space-y-3">
@@ -211,19 +246,25 @@ export default function YouthSignup() {
           <>
             <div className="space-y-3">
               <Label htmlFor="preferredCareerField">Preferred Career Field *</Label>
-              <Select onValueChange={(value) => setValue("preferredCareerField", value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select career field" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="design">Design</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                name="preferredCareerField"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select career field" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technology">Technology</SelectItem>
+                      <SelectItem value="design">Design</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="healthcare">Healthcare</SelectItem>
+                      <SelectItem value="education">Education</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {errors.preferredCareerField && <p className="text-sm text-red-500">{errors.preferredCareerField.message}</p>}
             </div>
             <div className="space-y-3">
@@ -241,10 +282,20 @@ export default function YouthSignup() {
               </label>
             </div>
             <div className="flex items-start space-x-2 pt-2">
-              <Checkbox id="terms" onCheckedChange={(checked) => setValue("termsAccepted", checked === true)} />
+              <Controller
+                name="termsAccepted"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="terms"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                )}
+              />
               <div className="grid gap-1.5 leading-none">
                 <label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  I agree to the <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and{' '}
+                  I agree to the <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and{" "}
                   <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
                 </label>
                 {errors.termsAccepted && <p className="text-sm text-red-500">{errors.termsAccepted.message}</p>}
@@ -273,12 +324,12 @@ export default function YouthSignup() {
           <div className="pt-2">
             <Progress value={progressValue} className="h-2" />
             <p className="text-sm text-muted-foreground mt-1">
-              Step {step} of 3: {step === 1 ? 'Basic Info' : step === 2 ? 'Location & Skills' : 'Final Details'}
+              Step {step} of 3: {step === 1 ? "Basic Info" : step === 2 ? "Location & Skills" : "Final Details"}
             </p>
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
+          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6" autoComplete="off">
             {renderStep()}
             {step < 3 ? (
               <div className="flex justify-between pt-4">
@@ -288,14 +339,14 @@ export default function YouthSignup() {
             ) : (
               <div className="pt-4">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating Account...' : 'Complete Registration'}
+                  {isLoading ? "Creating Account..." : "Complete Registration"}
                 </Button>
                 <Button type="button" variant="ghost" onClick={prevStep} className="w-full mt-2">Back</Button>
               </div>
             )}
           </form>
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link to="/login" className="text-primary hover:underline font-medium">Log in</Link>
           </div>
         </CardContent>
